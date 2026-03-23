@@ -60,14 +60,17 @@ jobs:
             echo "has_code_changes=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Override JVM args for CI
+        run: sed -i 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx3g -Dfile.encoding=UTF-8/' gradle.properties
+
       - name: Warm up convention build
         run: ./gradlew :convention:assemble --no-configuration-cache
 
       - name: Build & test
         run: >
           ./gradlew check
+          --max-workers=2
           -PappleTargets=false
-          -Dorg.gradle.jvmargs="-Xmx5g -Dfile.encoding=UTF-8"
 
       - name: Jacoco aggregated report
         if: steps.detect-changes.outputs.has_code_changes == 'true'
