@@ -19,14 +19,16 @@ kotlin {
         }
     }
 
-        iosArm64()
-        iosX64()
-        iosSimulatorArm64()
-        macosArm64()
-        tvosArm64()
-        tvosSimulatorArm64()
-        watchosArm64()
-        watchosSimulatorArm64()
+        if (providers.gradleProperty("appleTargets").map { it.toBoolean() }.getOrElse(true)) {
+            iosArm64()
+            iosX64()
+            iosSimulatorArm64()
+            macosArm64()
+            tvosArm64()
+            tvosSimulatorArm64()
+            watchosArm64()
+            watchosSimulatorArm64()
+        }
 
         js {
             browser { testTask { enabled = false } }
