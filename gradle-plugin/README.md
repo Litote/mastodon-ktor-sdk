@@ -41,7 +41,17 @@ Or pass `--text` on the command line:
 ./gradlew sendText --text "Hello from Gradle!"
 ```
 
+Use `--simulate` to validate the configuration and log what would be posted without actually sending:
+
+```
+./gradlew sendText --text "Hello from Gradle!" --simulate
+```
+
+> **Note:** Gradle's built-in `--dry-run` (`-m`) lists which tasks *would* run but skips all task actions entirely — no validation, no logging. Use `--simulate` for a meaningful preview.
+
 ### `sendMedia` — post a status with media attachments
+
+Configure attachments via task properties in `build.gradle.kts`:
 
 ```kotlin
 tasks.named<org.litote.mastodon.ktor.sdk.gradle.SendMediaTask>("sendMedia") {
@@ -49,6 +59,20 @@ tasks.named<org.litote.mastodon.ktor.sdk.gradle.SendMediaTask>("sendMedia") {
     attach("path/to/photo.jpg", "Alt text for the photo")
     attach("path/to/video.mp4")  // description is optional
 }
+```
+
+The `--text`, `--attach`, and `--simulate` options are also available on the command line:
+
+```
+./gradlew sendMedia --text "My photo post" --attach "path/to/photo.jpg::Alt text for the photo" --attach "path/to/video.mp4"
+```
+
+The `--attach` value is either a plain file path or `filePath::alt text` (separated by `::`). The flag can be repeated up to 4 times.
+
+Use `--simulate` to validate the configuration and log what would be posted without actually sending:
+
+```
+./gradlew sendMedia --text "My photo post" --attach "path/to/photo.jpg::Alt text" --simulate
 ```
 
 Up to 4 attachments. Supported formats: `jpg`, `jpeg`, `png`, `gif`, `webp`, `mp4`, `mov`.
@@ -72,10 +96,13 @@ Individual tasks can override any property.
 | Property | Type | Description |
 |----------|------|-------------|
 | `text` | `String` | Status text to post (required) |
+| `simulate` | `Boolean` | Log what would be posted without sending (default: `false`) |
 
 ### `sendMedia`
 
 | Property / Method | Type | Description |
 |-------------------|------|-------------|
 | `text` | `String` | Status text to post (required) |
-| `attach(filePath, description?)` | — | Add a media attachment (up to 4) |
+| `simulate` | `Boolean` | Log what would be posted without sending (default: `false`) |
+| `attach(filePath, description?)` | — | Add a media attachment via DSL (up to 4) |
+| `--attach "filePath[::alt text]"` | — | Add a media attachment via CLI (repeatable, up to 4) |

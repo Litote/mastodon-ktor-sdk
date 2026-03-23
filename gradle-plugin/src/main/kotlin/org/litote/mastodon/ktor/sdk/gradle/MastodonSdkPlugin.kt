@@ -11,12 +11,14 @@ class MastodonSdkPlugin : Plugin<Project> {
             task.token.convention(extension.token)
             task.visibility.convention(extension.visibility)
             task.language.convention(extension.language)
+            task.simulate.convention(false)
         }
         project.tasks.register("sendMedia", SendMediaTask::class.java) { task ->
             task.server.convention(extension.server)
             task.token.convention(extension.token)
             task.visibility.convention(extension.visibility)
             task.language.convention(extension.language)
+            task.simulate.convention(false)
         }
     }
 }

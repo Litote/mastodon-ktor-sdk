@@ -1,6 +1,7 @@
 import groovy.json.JsonSlurper
 import org.gradle.kotlin.dsl.findByType
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.sonarqube.gradle.SonarExtension
 import java.net.URI
 import java.net.http.HttpClient
@@ -77,15 +78,27 @@ val jacocoAggregatedReport by tasks.registering(JacocoReport::class) {
         subprojects.flatMap { sub ->
             sub.extensions.findByType(KotlinJvmProjectExtension::class)
                 ?.sourceSets?.getByName("main")?.kotlin?.srcDirs
+                ?: sub.extensions.findByType(KotlinMultiplatformExtension::class)?.let { kmp ->
+                    listOfNotNull(
+                        kmp.sourceSets.findByName("commonMain")?.kotlin?.srcDirs,
+                        kmp.sourceSets.findByName("jvmMain")?.kotlin?.srcDirs,
+                    ).flatten()
+                }
                 ?: emptyList()
         },
     )
 
     classDirectories.setFrom(
         subprojects.flatMap { sub ->
-            sub.fileTree("${sub.layout.buildDirectory.get()}/classes/kotlin/main") {
-                exclude("**/*\$\$serializer.class")
-            }
+            val buildDir = sub.layout.buildDirectory.get()
+            listOf(
+                sub.fileTree("$buildDir/classes/kotlin/jvm/main") {
+                    exclude("**/*\$\$serializer.class")
+                },
+                sub.fileTree("$buildDir/classes/kotlin/main") {
+                    exclude("**/*\$\$serializer.class")
+                },
+            )
         },
     )
 

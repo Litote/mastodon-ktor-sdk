@@ -31,6 +31,10 @@ abstract class SendTextTask : DefaultTask() {
     @get:Option(option = "text", description = "Status text to post")
     abstract val text: Property<String>
 
+    @get:Input
+    @get:Option(option = "simulate", description = "Log what would be posted without actually sending")
+    abstract val simulate: Property<Boolean>
+
     @TaskAction
     fun send() {
         val config =
@@ -50,6 +54,13 @@ abstract class SendTextTask : DefaultTask() {
                 visibility = visibilityEnum,
                 language = language.get(),
             )
+        if (simulate.get()) {
+            logger.lifecycle("[simulate] server:     ${server.get()}")
+            logger.lifecycle("[simulate] visibility: ${visibilityEnum.name.lowercase()}")
+            logger.lifecycle("[simulate] language:   ${language.get()}")
+            logger.lifecycle("[simulate] text:       ${text.get()}")
+            return
+        }
         when (val result = runBlocking { SendSdk(config).sendText(status) }) {
             is SendResult.Success -> logger.lifecycle("Status posted successfully")
             is SendResult.PostFailure -> error("Failed to post status: ${result.response}")

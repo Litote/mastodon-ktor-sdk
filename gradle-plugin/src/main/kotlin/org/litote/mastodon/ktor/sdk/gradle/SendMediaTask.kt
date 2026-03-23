@@ -44,6 +44,17 @@ abstract class SendMediaTask : DefaultTask() {
     @get:Input
     abstract val attachments: ListProperty<Attachment>
 
+    @get:Input
+    @get:Option(
+        option = "attach",
+        description = "Media attachment as 'filePath' or 'filePath::alt text'. Repeatable up to 4 times.",
+    )
+    abstract val attachOptions: ListProperty<String>
+
+    @get:Input
+    @get:Option(option = "simulate", description = "Log what would be posted without actually sending")
+    abstract val simulate: Property<Boolean>
+
     fun attach(
         filePath: String,
         description: String? = null,
@@ -64,8 +75,14 @@ abstract class SendMediaTask : DefaultTask() {
             StatusVisibilityEnum.entries.firstOrNull {
                 it.name == visibility.get().uppercase()
             } ?: StatusVisibilityEnum.UNLISTED
+        val allAttachments =
+            attachments.get() +
+                attachOptions.get().map { option ->
+                    val parts = option.split("::", limit = 2)
+                    Attachment(filePath = parts[0], description = parts.getOrNull(1))
+                }
         val forms =
-            attachments.get().map { attachment ->
+            allAttachments.map { attachment ->
                 val bytes = java.io.File(attachment.filePath).readBytes()
                 CreateMediaV2Form(
                     file = CreateMediaV2FormFile(bytes, contentTypeForExtension(attachment.filePath)),
@@ -79,6 +96,19 @@ abstract class SendMediaTask : DefaultTask() {
                 visibility = visibilityEnum,
                 language = language.get(),
             )
+        if (simulate.get()) {
+            logger.lifecycle("[simulate] server:     ${server.get()}")
+            logger.lifecycle("[simulate] visibility: ${visibilityEnum.name.lowercase()}")
+            logger.lifecycle("[simulate] language:   ${language.get()}")
+            logger.lifecycle("[simulate] text:       ${text.get()}")
+            allAttachments.forEachIndexed { index, attachment ->
+                val file = java.io.File(attachment.filePath)
+                val size = if (file.exists()) "${file.length()} bytes" else "file not found"
+                val alt = attachment.description ?: "(no alt text)"
+                logger.lifecycle("[simulate] attach[$index]: ${attachment.filePath} — $alt ($size)")
+            }
+            return
+        }
         when (val result = runBlocking { SendSdk(config).sendMedia(status, forms) }) {
             is SendResult.Success -> logger.lifecycle("Status posted successfully")
             is SendResult.PostFailure -> error("Failed to post status: ${result.response}")

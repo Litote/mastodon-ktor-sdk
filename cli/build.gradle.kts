@@ -15,6 +15,9 @@ kotlin {
         jvmMain.dependencies {
             runtimeOnly(libs.slf4j.simple)
         }
+        jvmTest.dependencies {
+            implementation(libs.coroutines.test)
+        }
     }
 }
 

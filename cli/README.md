@@ -16,11 +16,18 @@ Both commands are run via Gradle and require a JVM.
 | `--token` | required | OAuth access token |
 | `--visibility` | `unlisted` | `public`, `unlisted`, `private`, `direct` |
 | `--language` | `en` | ISO 639 language code |
+| `--simulate` | — | Log what would be posted without actually sending |
 
 Example:
 
 ```
 --args="--server mastodon.social --token xxxx --visibility public Hello from Kotlin!"
+```
+
+Simulate (no network call):
+
+```
+--args="--server mastodon.social --token xxxx --simulate Hello from Kotlin!"
 ```
 
 ## SendMedia — post a status with media attachments
@@ -34,8 +41,22 @@ Supports up to 4 media attachments. Each file can optionally be followed by an a
 
 Supported formats: `jpg`, `jpeg`, `png`, `gif`, `webp`, `mp4`, `mov`.
 
+| Option | Default | Description |
+|---|---|---|
+| `--server` | required | FQDN of the Mastodon instance |
+| `--token` | required | OAuth access token |
+| `--visibility` | `unlisted` | `public`, `unlisted`, `private`, `direct` |
+| `--language` | `en` | ISO 639 language code |
+| `--simulate` | — | Log what would be posted without actually sending |
+
 Example:
 
 ```
 --args="--server mastodon.social --token xxxx 'My caption' photo1.jpg 'Alt text 1' photo2.png"
+```
+
+Simulate (no network call, shows attachment paths, alt texts and file sizes):
+
+```
+--args="--server mastodon.social --token xxxx --simulate 'My caption' photo1.jpg 'Alt text 1'"
 ```

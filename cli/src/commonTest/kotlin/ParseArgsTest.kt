@@ -60,4 +60,29 @@ class ParseArgsTest {
 
         assertEquals(listOf("hello world"), remaining)
     }
+
+    @Test
+    fun `GIVEN --simulate flag WHEN parseArgs THEN simulate is true`() {
+        val parsed = parseArgs(arrayOf("--server", "mastodon.social", "--token", "abc", "--simulate"))
+
+        assertEquals(true, parsed.simulate)
+    }
+
+    @Test
+    fun `GIVEN no --simulate flag WHEN parseArgs THEN simulate is false`() {
+        val parsed = parseArgs(arrayOf("--server", "mastodon.social", "--token", "abc"))
+
+        assertEquals(false, parsed.simulate)
+    }
+
+    @Test
+    fun `GIVEN --simulate flag mixed with positional args WHEN parseArgs THEN simulate is true and remaining is correct`() {
+        val parsed =
+            parseArgs(
+                arrayOf("--server", "mastodon.social", "--token", "abc", "--simulate", "hello", "world"),
+            )
+
+        assertEquals(true, parsed.simulate)
+        assertEquals(listOf("hello", "world"), parsed.remaining)
+    }
 }
