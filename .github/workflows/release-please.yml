@@ -106,6 +106,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}
         run: >
           ./gradlew publishAndReleaseToMavenCentral
+          --max-workers=8
           -x publishMacosArm64PublicationToMavenCentralRepository
           -x publishIosArm64PublicationToMavenCentralRepository
           -x publishIosX64PublicationToMavenCentralRepository
@@ -173,6 +174,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}
         run: >
           ./gradlew publishAndReleaseToMavenCentral
+          --max-workers=8
           -x publishJvmPublicationToMavenCentralRepository
           -x publishJsPublicationToMavenCentralRepository
           -x publishWasmJsPublicationToMavenCentralRepository
