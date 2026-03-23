@@ -119,6 +119,10 @@ subprojects {
 /**
  * Regenerates gradle/verification-metadata.xml after dependency upgrades.
  *
+ * Uses --refresh-dependencies to force re-downloading all artifacts (including .module files
+ * from the Gradle Plugin Portal) so the generated metadata matches a clean CI environment.
+ * Without this flag, locally-cached resolutions can differ from CI and cause verification failures.
+ *
  * Run this after every `versionCatalogUpdate` or manual dependency change:
  *   ./gradlew updateVerificationMetadata
  */
@@ -130,6 +134,7 @@ tasks.register("updateVerificationMetadata") {
         val result = ProcessBuilder(
             "${rootDir}/gradlew",
             "--write-verification-metadata", "sha256",
+            "--refresh-dependencies",
             "dependencies", "check",
         )
             .directory(rootDir)
