@@ -103,6 +103,10 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew sonarCheck
 
+      - name: Restore JVM args for publish
+        if: github.event_name == 'push' && steps.detect-changes.outputs.has_code_changes == 'true'
+        run: sed -i 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx6g -Dfile.encoding=UTF-8/' gradle.properties
+
       - name: Publish SNAPSHOT to Maven Central
         if: github.event_name == 'push' && steps.detect-changes.outputs.has_code_changes == 'true'
         env:

@@ -75,6 +75,7 @@ jobs:
         run: |
           VERSION="${TAG#v}"
           sed -i "s/^VERSION_NAME=.*/VERSION_NAME=${VERSION}/" gradle.properties
+          sed -i 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx6g -Dfile.encoding=UTF-8/' gradle.properties
 
       - name: Build & test
         run: ./gradlew check
@@ -159,6 +160,7 @@ jobs:
         run: |
           VERSION="${TAG#v}"
           sed -i "" "s/^VERSION_NAME=.*/VERSION_NAME=${VERSION}/" gradle.properties
+          sed -i "" 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx6g -Dfile.encoding=UTF-8/' gradle.properties
 
       # Publishes only Apple targets (macOS, iOS, tvOS, watchOS).
       # JVM / JS / WASM / Linux / Windows / KotlinMultiplatform metadata are handled by the publish job.
