@@ -1,0 +1,28 @@
+package org.litote.mastodon.ktor.sdk.sharedNotificationsapiv1notificationsget1a339ee3.model
+
+import kotlin.String
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.serializer
+
+@Serializable
+public enum class AccountWarningActionEnum {
+  @SerialName("none")
+  NONE,
+  @SerialName("disable")
+  DISABLE,
+  @SerialName("mark_statuses_as_sensitive")
+  MARK_STATUSES_AS_SENSITIVE,
+  @SerialName("delete_statuses")
+  DELETE_STATUSES,
+  @SerialName("sensitive")
+  SENSITIVE,
+  @SerialName("silence")
+  SILENCE,
+  @SerialName("suspend")
+  SUSPEND,
+  UNKNOWN_,
+  ;
+
+  public fun serialName(): String = AccountWarningActionEnum.serializer().descriptor.getElementName(this.ordinal)
+}

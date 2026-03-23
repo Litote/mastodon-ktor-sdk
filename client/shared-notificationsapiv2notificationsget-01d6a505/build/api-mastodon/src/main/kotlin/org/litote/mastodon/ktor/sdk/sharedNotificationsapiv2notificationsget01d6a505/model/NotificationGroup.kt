@@ -1,0 +1,36 @@
+package org.litote.mastodon.ktor.sdk.sharedNotificationsapiv2notificationsget01d6a505.model
+
+import kotlin.Long
+import kotlin.String
+import kotlin.collections.List
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import org.litote.mastodon.ktor.sdk.sharedNotificationsapiv1notificationsget1a339ee3.model.AccountWarning
+import org.litote.mastodon.ktor.sdk.sharedNotificationsapiv1notificationsget1a339ee3.model.NotificationTypeEnum
+import org.litote.mastodon.ktor.sdk.sharedNotificationsapiv1notificationsget1a339ee3.model.RelationshipSeveranceEvent
+import org.litote.mastodon.ktor.sdk.sharedNotificationsapiv1notificationsget35be95f4.model.Report
+
+@Serializable
+public data class NotificationGroup(
+  public val event: RelationshipSeveranceEvent? = null,
+  @SerialName("group_key")
+  public val groupKey: String,
+  @SerialName("latest_page_notification_at")
+  public val latestPageNotificationAt: String? = null,
+  @SerialName("moderation_warning")
+  public val moderationWarning: AccountWarning? = null,
+  @SerialName("most_recent_notification_id")
+  public val mostRecentNotificationId: Long,
+  @SerialName("notifications_count")
+  public val notificationsCount: Long,
+  @SerialName("page_max_id")
+  public val pageMaxId: String? = null,
+  @SerialName("page_min_id")
+  public val pageMinId: String? = null,
+  public val report: Report? = null,
+  @SerialName("sample_account_ids")
+  public val sampleAccountIds: List<String>,
+  @SerialName("status_id")
+  public val statusId: String? = null,
+  public val type: NotificationTypeEnum = NotificationTypeEnum.UNKNOWN_,
+)

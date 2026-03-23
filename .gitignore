@@ -1,0 +1,17 @@
+# Gradle build output
+.gradle/
+build/
+
+# Keep generated OpenAPI files
+!**/build/api-mastodon/**
+
+# IntelliJ IDEA
+.idea/
+!.idea/runConfigurations/*
+*.iml
+*.ipr
+*.iws
+out/
+
+# Kotlin
+.kotlin

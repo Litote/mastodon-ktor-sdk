@@ -1,0 +1,12 @@
+package org.litote.mastodon.ktor.sdk.model
+
+import kotlin.String
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
+public data class PrivacyPolicy(
+  public val content: String,
+  @SerialName("updated_at")
+  public val updatedAt: String,
+)

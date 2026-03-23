@@ -1,0 +1,22 @@
+package org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model
+
+import kotlin.String
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.serializer
+
+@Serializable
+public enum class QuoteApprovalAutomaticEnum {
+  @SerialName("public")
+  PUBLIC,
+  @SerialName("followers")
+  FOLLOWERS,
+  @SerialName("following")
+  FOLLOWING,
+  @SerialName("unsupported_policy")
+  UNSUPPORTED_POLICY,
+  UNKNOWN_,
+  ;
+
+  public fun serialName(): String = QuoteApprovalAutomaticEnum.serializer().descriptor.getElementName(this.ordinal)
+}
