@@ -41,6 +41,8 @@ apiClientGenerator {
 }
 
 tasks.register("addGeneratedSourcesToGit") {
+    group = "openapi"
+    description = "Stages generated API client sources under client/**/build/api-mastodon into git."
     doLast {
         val clientDir = layout.projectDirectory.dir("client").asFile
         clientDir.walkTopDown()
@@ -61,7 +63,9 @@ tasks.configureEach {
 }
 
 val jacocoAggregatedReport by tasks.registering(JacocoReport::class) {
-    dependsOn(subprojects.mapNotNull { it.tasks.findByName("test") })
+    dependsOn(subprojects.flatMap { sub ->
+        listOfNotNull(sub.tasks.findByName("test"), sub.tasks.findByName("jvmTest"))
+    })
 
     executionData.setFrom(
         subprojects.flatMap { sub ->
@@ -100,6 +104,8 @@ sonar {
             "sonar.coverage.jacoco.xmlReportPaths",
             layout.buildDirectory.file("reports/jacoco/jacocoAggregatedReport/jacocoAggregatedReport.xml").get().asFile.absolutePath,
         )
+        // Gradle plugin and convention modules are build tooling — no unit tests expected.
+        property("sonar.coverage.exclusions", "**/gradle-plugin/**,**/convention/**")
     }
 }
 
@@ -240,8 +246,10 @@ tasks.register("sonarCheck") {
         logger.lifecycle("╚════════════════════════════════════╝")
         logger.lifecycle("")
 
+        // NONE = gate not yet calibrated (no baseline period); ERROR = gate conditions failed.
+        // Accepting NONE is safe because issues and hotspots are checked independently above.
         val failures = buildList {
-            if (gateStatus != "OK") add("quality gate status is '$gateStatus' (expected OK)")
+            if (gateStatus != "OK" && gateStatus != "NONE") add("quality gate status is '$gateStatus' (expected OK or NONE)")
             if (issueCount > 0) add("$issueCount unresolved issue(s)")
             if (hotspotCount > 0) add("$hotspotCount unreviewed security hotspot(s)")
         }

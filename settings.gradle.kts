@@ -1,3 +1,5 @@
+rootProject.name = "mastodon-ktor-sdk"
+
 pluginManagement {
     repositories {
         gradlePluginPortal()
@@ -12,6 +14,7 @@ val generatorVersion = run {
 }
 
 dependencyResolutionManagement {
+    @Suppress("UnstableApiUsage")
     repositories {
         mavenCentral()
     }

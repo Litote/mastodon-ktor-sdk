@@ -2,7 +2,8 @@ package org.litote.mastodon.ktor.sdk.gradle
 
 import org.gradle.api.provider.Property
 
-abstract class MastodonSendExtension {
+// Gradle requires an abstract class (not interface) to inject managed properties via ObjectFactory.
+abstract class MastodonSendExtension { // NOSONAR kotlin:S1694
     abstract val server: Property<String>
     abstract val token: Property<String>
     abstract val visibility: Property<String>
