@@ -11,10 +11,30 @@ concurrency:
 
 jobs:
   publish-snapshot:
-    name: Publish SNAPSHOT to Maven Central
+    name: Publish SNAPSHOT (${{ matrix.group }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: a-b
+            client_pattern: "^[ab]"
+            include_other: false
+          - group: c-f
+            client_pattern: "^[c-f]"
+            include_other: false
+          - group: g-n
+            client_pattern: "^[g-n]"
+            include_other: false
+          - group: o-s
+            client_pattern: "^[o-s]"
+            include_other: false
+          - group: t-z
+            client_pattern: "^[t-z]"
+            include_other: true
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -34,6 +54,9 @@ jobs:
           dependency-graph: disabled
           build-scan-publish: false
 
+      - name: Warm up convention build
+        run: ./gradlew :convention:assemble --no-configuration-cache
+
       - name: Override JVM args
         run: sed -i 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx6g -Dfile.encoding=UTF-8/' gradle.properties
 
@@ -44,4 +67,10 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_IN_MEMORY_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_IN_MEMORY_KEY_ID }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}
-        run: ./gradlew publishToMavenCentral --max-workers=8
+        run: |
+          TASKS=$(ls client/ | grep -vE "^(build|shared)" | grep -E "${{ matrix.client_pattern }}" | sed 's/^/:client:/' | sed 's/$/:publishToMavenCentral/' | tr '\n' ' ')
+          if [ "${{ matrix.include_other }}" = "true" ]; then
+            SHARED=$(ls client/ | grep "^shared" | sed 's/^/:client:/' | sed 's/$/:publishToMavenCentral/' | tr '\n' ' ')
+            TASKS="$TASKS $SHARED :sdk:configuration:publishToMavenCentral :sdk:send:publishToMavenCentral"
+          fi
+          ./gradlew $TASKS --max-workers=8

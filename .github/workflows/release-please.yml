@@ -163,6 +163,9 @@ jobs:
           sed -i "" "s/^VERSION_NAME=.*/VERSION_NAME=${VERSION}/" gradle.properties
           sed -i "" 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx6g -Dfile.encoding=UTF-8/' gradle.properties
 
+      - name: Warm up convention build
+        run: ./gradlew :convention:assemble --no-configuration-cache
+
       # Publishes only Apple targets (macOS, iOS, tvOS, watchOS).
       # JVM / JS / WASM / Linux / Windows / KotlinMultiplatform metadata are handled by the publish job.
       - name: Publish Apple targets to Maven Central
