@@ -8,7 +8,8 @@
           <trust file=".*-sources\.jar" regex="true"/>
           <trust file=".*-src\.zip" regex="true"/>
           <trust file=".*\.module" regex="true"/>
-          <trust file=".*\.pom" regex="true"/>j
+          <trust file=".*\.pom" regex="true"/>
+          <trust group="org.jetbrains.kotlin" name="kotlin-native-prebuilt" file=".*\.tar\.gz" regex="true"/>
       </trusted-artifacts>
    </configuration>
    <components>
