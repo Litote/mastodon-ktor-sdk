@@ -39,7 +39,7 @@ jobs:
           java-version: '25'
           distribution: 'temurin'
 
-      # gradle-home-cache-cleanup: never prevents eviction of dependency metadata files
+      # gradle-home-cache-cleanup: false prevents eviction of dependency metadata files
       # (.module files) that the configuration cache fingerprints. When the configuration
       # cache is reused, dependency resolution is skipped and those files are not "accessed",
       # so the default on-success cleanup would remove them, invalidating the cache on the
@@ -50,7 +50,7 @@ jobs:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           dependency-graph: disabled
           build-scan-publish: false
-          gradle-home-cache-cleanup: never
+          gradle-home-cache-cleanup: false
 
       - name: Detect code changes
         id: detect-changes
@@ -134,7 +134,7 @@ jobs:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           dependency-graph: disabled
           build-scan-publish: false
-          gradle-home-cache-cleanup: never
+          gradle-home-cache-cleanup: false
 
       - name: Detect code changes
         id: detect-changes
