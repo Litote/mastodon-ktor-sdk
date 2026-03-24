@@ -1,5 +1,8 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id("kotlin-convention")
+    alias(libs.plugins.shadow)
 }
 
 kotlin {
@@ -25,4 +28,17 @@ mavenPublishing {
     pom {
         description = "Mastodon CLI"
     }
+}
+
+tasks.register<ShadowJar>("shadowJar") {
+    group = "build"
+    description = "Assembles a fat JAR containing all dependencies for the Mastodon CLI."
+    archiveBaseName.set("mastodon-cli")
+    archiveClassifier.set("")
+    configurations = listOf(project.configurations.getByName("jvmRuntimeClasspath"))
+    from(tasks.named("jvmJar"))
+    manifest {
+        attributes["Main-Class"] = "org.litote.mastodon.ktor.sdk.send.MastodonCliMainKt"
+    }
+    mergeServiceFiles()
 }

@@ -1,7 +1,39 @@
 # Mastodon CLI
 
 Command-line tools to post statuses to Mastodon, built on top of `sdk:send`.
-Both commands are run via Gradle and require a JVM.
+
+## Using the CLI outside this project
+
+Each GitHub Release attaches a standalone fat JAR (`mastodon-cli-<version>.jar`) that bundles
+all dependencies. Only Java 17+ is required — no Gradle, no clone.
+
+**1. Download the JAR from the [latest release](https://github.com/Litote/mastodon-ktor-sdk/releases/latest).**
+
+**2. Run it:**
+
+```bash
+java -jar mastodon-cli-<version>.jar send-text \
+  --server mastodon.social --token <token> "Hello from the terminal!"
+
+java -jar mastodon-cli-<version>.jar send-media \
+  --server mastodon.social --token <token> "My caption" photo.jpg "Alt text"
+```
+
+**Available commands:**
+
+| Command | Description |
+|---|---|
+| `send-text` | Post a plain-text status |
+| `send-media` | Post a status with media attachments |
+
+> **Tip:** create a shell alias to avoid repeating the `java -jar` prefix:
+> ```bash
+> alias mastodon-cli='java -jar ~/bin/mastodon-cli-<version>.jar'
+> ```
+
+---
+
+Both commands are also runnable via Gradle and require a JVM.
 
 ## SendText — post a text status
 

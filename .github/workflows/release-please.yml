@@ -48,7 +48,7 @@ jobs:
     needs: release-please
     if: needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch'
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -128,6 +128,15 @@ jobs:
           GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
           GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
         run: ./gradlew publishPlugins
+
+      - name: Build CLI fat JAR
+        run: ./gradlew :cli:shadowJar
+
+      - name: Upload CLI fat JAR to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
+        run: gh release upload "$TAG" cli/build/libs/mastodon-cli-*.jar --clobber
 
   publish-macos:
     name: Publish ${{ needs.release-please.outputs.tag_name || inputs.tag }} (Apple chunk ${{ matrix.chunk }})

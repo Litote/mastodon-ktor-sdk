@@ -1,26 +1,12 @@
 package org.litote.mastodon.ktor.sdk.send
 
 import kotlinx.coroutines.test.runTest
-import java.io.ByteArrayOutputStream
-import java.io.PrintStream
 import kotlin.test.Test
 import kotlin.test.assertContains
 
 class SendTextMainTest {
-    private suspend fun captureStdout(block: suspend () -> Unit): String {
-        val out = ByteArrayOutputStream()
-        val original = System.out
-        System.setOut(PrintStream(out))
-        try {
-            block()
-        } finally {
-            System.setOut(original)
-        }
-        return out.toString()
-    }
-
     @Test
-    fun `GIVEN --simulate WHEN sendText main THEN logs config without sending`() =
+    fun `GIVEN --simulate WHEN sendText main THEN logs config without sending`() : Unit =
         runTest {
             val output =
                 captureStdout {
@@ -43,7 +29,7 @@ class SendTextMainTest {
         }
 
     @Test
-    fun `GIVEN --simulate with custom visibility WHEN sendText main THEN logs correct visibility`() =
+    fun `GIVEN --simulate with custom visibility WHEN sendText main THEN logs correct visibility`() : Unit =
         runTest {
             val output =
                 captureStdout {
