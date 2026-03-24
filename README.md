@@ -1,6 +1,7 @@
 # Mastodon Ktor SDK
 
 ![Plugin Version](https://img.shields.io/gradle-plugin-portal/v/org.litote.mastodon.sdk)
+[![KDoc](https://img.shields.io/badge/KDoc-API_Reference-blue)](https://litote.github.io/mastodon-ktor-sdk/)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Litote_mastodon-ktor-sdk&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Litote_mastodon-ktor-sdk)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Litote_mastodon-ktor-sdk&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Litote_mastodon-ktor-sdk)
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=Litote_mastodon-ktor-sdk&metric=bugs)](https://sonarcloud.io/summary/new_code?id=Litote_mastodon-ktor-sdk)

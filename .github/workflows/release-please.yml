@@ -208,3 +208,58 @@ jobs:
             -x publishLinuxArm64PublicationToMavenCentralRepository \
             -x publishMingwX64PublicationToMavenCentralRepository \
             -x publishKotlinMultiplatformPublicationToMavenCentralRepository
+
+  docs:
+    name: Publish KDoc to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: [release-please, publish]
+    if: needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch'
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
+          fetch-depth: 0
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          dependency-graph: disabled
+          build-scan-publish: false
+          gradle-home-cache-cleanup: false
+
+      - name: Extract release version
+        env:
+          TAG: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
+        run: |
+          VERSION="${TAG#v}"
+          sed -i "s/^VERSION_NAME=.*/VERSION_NAME=${VERSION}/" gradle.properties
+
+      - name: Warm up convention build
+        run: ./gradlew :convention:assemble --no-configuration-cache
+
+      - name: Generate KDoc
+        run: ./gradlew dokkaGeneratePublicationHtml --no-configuration-cache
+
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        with:
+          path: build/dokka/html
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

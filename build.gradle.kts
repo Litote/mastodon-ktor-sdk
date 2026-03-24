@@ -11,11 +11,35 @@ import java.net.http.HttpResponse
 plugins {
     id("project-convention")
     alias(libs.plugins.generator)
+    alias(libs.plugins.dokka)
     alias(openapi.plugins.version.catalog.update)
     alias(openapi.plugins.ktlint) apply false
     alias(openapi.plugins.sonarqube)
     id("jacoco")
 }
+
+// Apply Dokka only to hand-written modules so the 200+ generated client stubs are excluded
+// from the aggregated KDoc site.
+configure(
+    listOf(
+        project(":sdk:configuration"),
+        project(":sdk:send"),
+        project(":cli"),
+        project(":gradle-plugin"),
+    ),
+) {
+    apply(plugin = "org.jetbrains.dokka")
+}
+
+// Aggregate the four hand-written modules into a single KDoc publication at the root.
+// Running `./gradlew dokkaGeneratePublicationHtml` produces the site in build/dokka/html/.
+dependencies {
+    dokka(project(":sdk:configuration"))
+    dokka(project(":sdk:send"))
+    dokka(project(":cli"))
+    dokka(project(":gradle-plugin"))
+}
+
 
 apiClientGenerator {
     initSubproject {
