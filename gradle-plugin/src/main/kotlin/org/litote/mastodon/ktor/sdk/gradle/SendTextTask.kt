@@ -13,6 +13,18 @@ import org.litote.mastodon.ktor.sdk.send.SendResult
 import org.litote.mastodon.ktor.sdk.send.SendSdk
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget4016b7e9.model.StatusVisibilityEnum
 
+/**
+ * Gradle task that posts a plain-text status to a Mastodon instance.
+ *
+ * Typically configured through the `mastodonSend` extension (see [MastodonSendExtension]).
+ * The status text must be supplied at task invocation time via the `--text` command-line option
+ * or by setting the [text] property in the build script.
+ *
+ * ```
+ * ./gradlew sendText --text "Hello, Mastodon!"
+ * ./gradlew sendText --text "Hello" --simulate   # dry-run
+ * ```
+ */
 @DisableCachingByDefault(because = "Posts to an external service; output is not reproducible")
 abstract class SendTextTask : DefaultTask() {
     @get:Input

@@ -4,6 +4,19 @@ import org.litote.mastodon.ktor.sdk.cli.parseArgs
 import org.litote.mastodon.ktor.sdk.model.TextStatus
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget4016b7e9.model.StatusVisibilityEnum
 
+/**
+ * JVM entry point for the `SendText` CLI tool.
+ *
+ * Posts a plain-text status to a Mastodon instance.
+ *
+ * Usage:
+ * ```
+ * SendText --server <host> --token <access_token> [--visibility <v>] [--language <l>] [--simulate] <text…>
+ * ```
+ *
+ * All positional arguments after the named flags are joined with a space and used as the status text.
+ * Pass `--simulate` to print what would be posted without actually sending.
+ */
 public suspend fun main(args: Array<String>): Unit = runSendText(args)
 
 internal suspend fun runSendText(args: Array<String>) {

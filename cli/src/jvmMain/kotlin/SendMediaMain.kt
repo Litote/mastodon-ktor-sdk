@@ -7,11 +7,23 @@ import org.litote.mastodon.ktor.sdk.cli.parseArgs
 import org.litote.mastodon.ktor.sdk.model.MediaStatus
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget4016b7e9.model.StatusVisibilityEnum
 
-// Usage: SendMedia [--server <host>] [--token <token>] [--visibility <v>] [--language <l>]
-//                 <status> <file1> [desc1] [<file2> [desc2 [<file3> [desc3 [<file4> [desc4]]]]]]
-//
-// Whether the argument after a file path is a description or the next file is determined
-// by checking if it exists as a regular file on the filesystem.
+/**
+ * JVM entry point for the `SendMedia` CLI tool.
+ *
+ * Uploads up to four media attachments and posts a status referencing them to a Mastodon instance.
+ *
+ * Usage:
+ * ```
+ * SendMedia --server <host> --token <access_token> [--visibility <v>] [--language <l>] [--simulate]
+ *           <status> <file1> [desc1] [<file2> [desc2 [<file3> [desc3 [<file4> [desc4]]]]]]
+ * ```
+ *
+ * Whether the argument after a file path is an alt-text description or the next file path is
+ * determined by probing the filesystem: if the argument resolves to an existing regular file it is
+ * treated as the next attachment; otherwise it is treated as a description for the preceding file.
+ *
+ * Pass `--simulate` to print what would be posted without actually uploading or sending.
+ */
 public suspend fun main(args: Array<String>): Unit = runSendMedia(args)
 
 internal suspend fun runSendMedia(args: Array<String>) {

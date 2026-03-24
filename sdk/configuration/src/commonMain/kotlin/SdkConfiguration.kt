@@ -8,6 +8,14 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 
+/**
+ * Configuration required to connect to a Mastodon server and post statuses.
+ *
+ * @property server Hostname of the Mastodon instance (e.g. `mastodon.social`). Must not include the scheme.
+ * @property token OAuth2 bearer token used to authenticate API requests.
+ * @property visibility Default visibility for posted statuses. Accepted values: `public`, `unlisted`, `private`, `direct`.
+ * @property language BCP 47 language tag applied to posted statuses (e.g. `en`, `fr`).
+ */
 public data class SdkConfiguration(
     val server: String,
     val token: String,
@@ -15,6 +23,16 @@ public data class SdkConfiguration(
     val language: String = "en",
 )
 
+/**
+ * Converts this [SdkConfiguration] into a low-level [ClientConfiguration] suitable for the
+ * generated Ktor API clients.
+ *
+ * The resulting configuration:
+ * - Sets the base URL to `https://<server>/`
+ * - Installs JSON content negotiation with lenient deserialization (unknown keys ignored, input values coerced)
+ * - Adds an `Authorization: Bearer <token>` header to every request
+ * - Enables Ktor [Logging]
+ */
 public fun SdkConfiguration.toClientConfiguration(): ClientConfiguration {
     val json =
         Json {

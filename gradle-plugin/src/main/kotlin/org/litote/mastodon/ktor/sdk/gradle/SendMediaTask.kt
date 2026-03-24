@@ -18,8 +18,34 @@ import org.litote.mastodon.ktor.sdk.send.SendSdk
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget4016b7e9.model.StatusVisibilityEnum
 import java.io.Serializable
 
+/**
+ * Gradle task that uploads media attachments and posts a status referencing them to a Mastodon instance.
+ *
+ * Typically configured through the `mastodonSend` extension (see [MastodonSendExtension]).
+ * Attachments can be added programmatically via [attach] or at the command line with the repeatable
+ * `--attach` option (format: `filePath` or `filePath::alt text`).
+ *
+ * ```kotlin
+ * // build.gradle.kts
+ * tasks.named<SendMediaTask>("sendMedia") {
+ *     text = "Look at this!"
+ *     attach("screenshot.png", "A screenshot of the app")
+ * }
+ * ```
+ *
+ * ```
+ * ./gradlew sendMedia --text "Look!" --attach "screenshot.png::A screenshot"
+ * ./gradlew sendMedia --text "Look!" --attach "a.png" --attach "b.png" --simulate
+ * ```
+ */
 @DisableCachingByDefault(because = "Posts to an external service; output is not reproducible")
 abstract class SendMediaTask : DefaultTask() {
+    /**
+     * A media file to be attached to the status.
+     *
+     * @property filePath Path to the file on the local filesystem.
+     * @property description Optional alt-text description for accessibility.
+     */
     data class Attachment(
         val filePath: String,
         val description: String? = null,
@@ -55,6 +81,12 @@ abstract class SendMediaTask : DefaultTask() {
     @get:Option(option = "simulate", description = "Log what would be posted without actually sending")
     abstract val simulate: Property<Boolean>
 
+    /**
+     * Adds a media attachment to this task from the build script.
+     *
+     * @param filePath Path to the file on the local filesystem.
+     * @param description Optional alt-text description for accessibility.
+     */
     fun attach(
         filePath: String,
         description: String? = null,
