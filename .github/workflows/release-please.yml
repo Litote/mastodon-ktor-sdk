@@ -41,6 +41,7 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+          last-release-sha: cbb0207fccf56da8e889e72ed51a55bb81bfcf0e
 
   publish:
     name: Publish ${{ needs.release-please.outputs.tag_name || inputs.tag }} (JVM / JS / Linux)
