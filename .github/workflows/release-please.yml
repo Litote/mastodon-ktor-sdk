@@ -77,6 +77,9 @@ jobs:
           sed -i "s/^VERSION_NAME=.*/VERSION_NAME=${VERSION}/" gradle.properties
           sed -i 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx6g -Dfile.encoding=UTF-8/' gradle.properties
 
+      - name: Warm up convention build
+        run: ./gradlew :convention:assemble --no-configuration-cache
+
       - name: Build & test
         run: ./gradlew check
 
@@ -123,10 +126,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}
           GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
           GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
-        run: >
-          ./gradlew publishPlugins
-          -Pgradle.publish.key=$GRADLE_PUBLISH_KEY
-          -Pgradle.publish.secret=$GRADLE_PUBLISH_SECRET
+        run: ./gradlew publishPlugins
 
   publish-macos:
     name: Publish ${{ needs.release-please.outputs.tag_name || inputs.tag }} (Apple targets)
