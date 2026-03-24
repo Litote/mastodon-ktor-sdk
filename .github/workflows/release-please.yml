@@ -84,19 +84,19 @@ jobs:
         run: ./gradlew check
 
       - name: Jacoco aggregated report
-        run: ./gradlew jacocoAggregatedReport
+        run: ./gradlew jacocoAggregatedReport --no-configuration-cache
 
       - name: SonarCloud analysis
         if: env.SONAR_TOKEN != ''
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonar
+        run: ./gradlew sonar --no-configuration-cache
 
       - name: SonarCloud quality gate
         if: env.SONAR_TOKEN != ''
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonarCheck
+        run: ./gradlew sonarCheck --no-configuration-cache
 
       # Publishes JVM, JS, WASM, Linux, Windows, and KotlinMultiplatform metadata.
       # Apple targets are excluded here and handled by the publish-macos job.
