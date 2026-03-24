@@ -129,10 +129,14 @@ jobs:
         run: ./gradlew publishPlugins
 
   publish-macos:
-    name: Publish ${{ needs.release-please.outputs.tag_name || inputs.tag }} (Apple targets)
+    name: Publish ${{ needs.release-please.outputs.tag_name || inputs.tag }} (Apple chunk ${{ matrix.chunk }})
     runs-on: macos-latest
     needs: [release-please, publish]
     if: needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        chunk: [0, 1, 2, 3]
     permissions:
       contents: read
 
@@ -166,22 +170,39 @@ jobs:
       - name: Warm up convention build
         run: ./gradlew :convention:assemble --no-configuration-cache
 
-      # Publishes only Apple targets (macOS, iOS, tvOS, watchOS).
+      # Publishes only Apple targets (macOS, iOS, tvOS, watchOS) for this chunk of client modules.
+      # 226 client modules are split into 4 parallel jobs (~56 modules each, round-robin by index).
+      # SDK modules (configuration, send) are handled by chunk 0.
       # JVM / JS / WASM / Linux / Windows / KotlinMultiplatform metadata are handled by the publish job.
-      - name: Publish Apple targets to Maven Central
+      - name: Publish Apple targets to Maven Central (chunk ${{ matrix.chunk }})
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_IN_MEMORY_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_IN_MEMORY_KEY_ID }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}
-        run: >
-          ./gradlew publishAndReleaseToMavenCentral
-          --max-workers=8
-          -x publishJvmPublicationToMavenCentralRepository
-          -x publishJsPublicationToMavenCentralRepository
-          -x publishWasmJsPublicationToMavenCentralRepository
-          -x publishLinuxX64PublicationToMavenCentralRepository
-          -x publishLinuxArm64PublicationToMavenCentralRepository
-          -x publishMingwX64PublicationToMavenCentralRepository
-          -x publishKotlinMultiplatformPublicationToMavenCentralRepository
+          CHUNK: ${{ matrix.chunk }}
+        run: |
+          MODULES=($(ls client/ | sort))
+          TOTAL=${#MODULES[@]}
+          CHUNK_COUNT=4
+
+          TASKS=""
+          for ((i=CHUNK; i<TOTAL; i+=CHUNK_COUNT)); do
+            TASKS="$TASKS :client:${MODULES[$i]}:publishAndReleaseToMavenCentral"
+          done
+
+          if [ "$CHUNK" -eq 0 ]; then
+            TASKS="$TASKS :sdk:configuration:publishAndReleaseToMavenCentral :sdk:send:publishAndReleaseToMavenCentral"
+          fi
+
+          ./gradlew $TASKS \
+            --no-configuration-cache \
+            --max-workers=4 \
+            -x publishJvmPublicationToMavenCentralRepository \
+            -x publishJsPublicationToMavenCentralRepository \
+            -x publishWasmJsPublicationToMavenCentralRepository \
+            -x publishLinuxX64PublicationToMavenCentralRepository \
+            -x publishLinuxArm64PublicationToMavenCentralRepository \
+            -x publishMingwX64PublicationToMavenCentralRepository \
+            -x publishKotlinMultiplatformPublicationToMavenCentralRepository
