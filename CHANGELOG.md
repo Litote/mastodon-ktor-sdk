@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.1](https://github.com/Litote/mastodon-ktor-sdk/compare/v0.1.0...v0.1.1) (2026-03-25)
+
+
+### Features
+
+* add cli fat jar ([a4799a0](https://github.com/Litote/mastodon-ktor-sdk/commit/a4799a0514f17d12a4acf2d5a2f4be23b9a3734e))
+
+
+### Documentation
+
+* add kdoc ([f2fd321](https://github.com/Litote/mastodon-ktor-sdk/commit/f2fd321d80b5ec2635c6ec2be8e369a71f75884d))
+
 ## [0.1.0](https://github.com/Litote/mastodon-ktor-sdk/compare/v0.0.1...v0.1.0) (2026-03-24)
 
 
