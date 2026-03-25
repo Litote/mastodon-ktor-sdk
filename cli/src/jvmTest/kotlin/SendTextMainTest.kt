@@ -6,7 +6,7 @@ import kotlin.test.assertContains
 
 class SendTextMainTest {
     @Test
-    fun `GIVEN --simulate WHEN sendText main THEN logs config without sending`() : Unit =
+    fun `GIVEN --simulate WHEN sendText main THEN logs config without sending`(): Unit =
         runTest {
             val output =
                 captureStdout {
@@ -29,7 +29,7 @@ class SendTextMainTest {
         }
 
     @Test
-    fun `GIVEN --simulate with custom visibility WHEN sendText main THEN logs correct visibility`() : Unit =
+    fun `GIVEN --simulate with custom visibility WHEN sendText main THEN logs correct visibility`(): Unit =
         runTest {
             val output =
                 captureStdout {
