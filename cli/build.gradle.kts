@@ -30,7 +30,7 @@ mavenPublishing {
     }
 }
 
-tasks.register<ShadowJar>("shadowJar") {
+tasks.named<ShadowJar>("shadowJar") {
     group = "build"
     description = "Assembles a fat JAR containing all dependencies for the Mastodon CLI."
     archiveBaseName.set("mastodon-cli")
