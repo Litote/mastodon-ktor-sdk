@@ -20,6 +20,7 @@ apiClientGenerator {
             sharedModelGranularity.set("SHARED_PER_GROUP")
             modulesIds.add("UnknownEnumValueModule")
             modulesIds.add("LoggingKotlinModule")
+            modulesIds.add("BasicAuthModule")
         }
     }
 }

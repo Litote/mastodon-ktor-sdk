@@ -42,6 +42,7 @@ apiClientGenerator {
             ))
             modulesIds.add("UnknownEnumValueModule")
             modulesIds.add("LoggingKotlinModule")
+            modulesIds.add("BasicAuthModule")
         }
     }
 }

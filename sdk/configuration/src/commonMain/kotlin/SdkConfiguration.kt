@@ -1,10 +1,5 @@
 package org.litote.mastodon.ktor.sdk.configuration
 
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.plugins.logging.Logging
-import io.ktor.client.request.header
-import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 
@@ -30,8 +25,8 @@ public data class SdkConfiguration(
  * The resulting configuration:
  * - Sets the base URL to `https://<server>/`
  * - Installs JSON content negotiation with lenient deserialization (unknown keys ignored, input values coerced)
- * - Adds an `Authorization: Bearer <token>` header to every request
- * - Enables Ktor [Logging]
+ * - Adds an `Authorization: Bearer <token>` header to every request via 'BasicAuthModule'
+ * - Enables Ktor logging
  */
 public fun SdkConfiguration.toClientConfiguration(): ClientConfiguration {
     val json =
@@ -39,17 +34,9 @@ public fun SdkConfiguration.toClientConfiguration(): ClientConfiguration {
             ignoreUnknownKeys = true
             coerceInputValues = true
         }
-    val baseUrl = "https://$server/"
     return ClientConfiguration(
-        baseUrl = baseUrl,
+        baseUrl = "https://$server/",
         json = json,
-        httpClientConfig = {
-            install(Logging)
-            install(ContentNegotiation) { json(json) }
-            defaultRequest {
-                url(baseUrl)
-                header("Authorization", "Bearer $token")
-            }
-        },
+        accessToken = token,
     )
 }

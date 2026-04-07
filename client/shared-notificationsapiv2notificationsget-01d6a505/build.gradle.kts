@@ -35,6 +35,7 @@ apiClientGenerator {
             splitGranularity.set("BY_TAG_AND_OPERATION")
             modulesIds.add("UnknownEnumValueModule")
             modulesIds.add("LoggingKotlinModule")
+            modulesIds.add("BasicAuthModule")
         }
     }
 }

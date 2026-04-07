@@ -61,6 +61,7 @@ apiClientGenerator {
         generatorConfigExtra = """
             modulesIds.add("UnknownEnumValueModule")
             modulesIds.add("LoggingKotlinModule")
+            modulesIds.add("BasicAuthModule")
         """.trimIndent()
     }
 }

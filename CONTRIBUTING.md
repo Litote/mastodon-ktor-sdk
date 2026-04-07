@@ -103,10 +103,10 @@ The list of generated `include()` entries in `settings.gradle.kts` is maintained
 
 ```bash
 # 1. Update version catalog to latest available versions
-./gradlew versionCatalogUpdate
+./gradlew versionCatalogUpdate --dependency-verification lenient
 
 # 2. Regenerate dependency verification metadata (MANDATORY after any dependency change)
-./gradlew updateVerificationMetadata
+./gradlew updateVerificationMetadata --dependency-verification lenient
 ```
 
 > ⚠️ **Always run `updateVerificationMetadata` after any dependency upgrade.**
