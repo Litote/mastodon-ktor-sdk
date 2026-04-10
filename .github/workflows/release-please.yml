@@ -129,17 +129,32 @@ jobs:
           GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
         run: ./gradlew publishPlugins
 
-      - name: Build CLI fat JAR
-        run: ./gradlew :cli:shadowJar
+      - name: Build CLI & MCP Server fat JARs and native binaries (Linux / Windows)
+        run: >
+          ./gradlew
+          :cli:shadowJar
+          :cli:linkReleaseExecutableLinuxX64
+          :cli:linkReleaseExecutableLinuxArm64
+          :cli:linkReleaseExecutableMingwX64
+          :mcp-server:shadowJar
+          :mcp-server:linkReleaseExecutableLinuxX64
+          :mcp-server:linkReleaseExecutableLinuxArm64
+          :mcp-server:linkReleaseExecutableMingwX64
 
-      - name: Upload CLI fat JAR to GitHub Release
+      - name: Upload CLI artifacts to GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
-        run: gh release upload "$TAG" cli/build/libs/mastodon-cli-*.jar --clobber
-
-      - name: Build MCP Server fat JAR & native binaries (Linux / Windows)
-        run: ./gradlew :mcp-server:shadowJar :mcp-server:linkReleaseExecutableLinuxX64 :mcp-server:linkReleaseExecutableLinuxArm64 :mcp-server:linkReleaseExecutableMingwX64
+        run: |
+          cp cli/build/bin/linuxX64/releaseExecutable/mastodon-cli.kexe mastodon-cli-linux-x64
+          cp cli/build/bin/linuxArm64/releaseExecutable/mastodon-cli.kexe mastodon-cli-linux-arm64
+          cp cli/build/bin/mingwX64/releaseExecutable/mastodon-cli.exe mastodon-cli-windows-x64.exe
+          gh release upload "$TAG" \
+            cli/build/libs/mastodon-cli-*.jar \
+            mastodon-cli-linux-x64 \
+            mastodon-cli-linux-arm64 \
+            mastodon-cli-windows-x64.exe \
+            --clobber
 
       - name: Upload MCP Server artifacts to GitHub Release
         env:
@@ -236,18 +251,19 @@ jobs:
             -x publishMingwX64PublicationToMavenCentralRepository \
             -x publishKotlinMultiplatformPublicationToMavenCentralRepository
 
-      - name: Build MCP Server native binary (macOS ARM64)
+      - name: Build CLI & MCP Server native binaries (macOS ARM64)
         if: matrix.chunk == 0
-        run: ./gradlew :mcp-server:linkReleaseExecutableMacosArm64
+        run: ./gradlew :cli:linkReleaseExecutableMacosArm64 :mcp-server:linkReleaseExecutableMacosArm64
 
-      - name: Upload MCP Server macOS binary to GitHub Release
+      - name: Upload CLI & MCP Server macOS binaries to GitHub Release
         if: matrix.chunk == 0
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
         run: |
+          cp cli/build/bin/macosArm64/releaseExecutable/mastodon-cli.kexe mastodon-cli-macos-arm64
           cp mcp-server/build/bin/macosArm64/releaseExecutable/mcp-server.kexe mastodon-mcp-server-macos-arm64
-          gh release upload "$TAG" mastodon-mcp-server-macos-arm64 --clobber
+          gh release upload "$TAG" mastodon-cli-macos-arm64 mastodon-mcp-server-macos-arm64 --clobber
 
   docs:
     name: Publish KDoc to GitHub Pages

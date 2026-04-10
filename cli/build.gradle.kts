@@ -6,6 +6,11 @@ plugins {
 }
 
 kotlin {
+    linuxX64 { binaries { executable { entryPoint = "org.litote.mastodon.ktor.sdk.cli.main" } } }
+    linuxArm64 { binaries { executable { entryPoint = "org.litote.mastodon.ktor.sdk.cli.main" } } }
+    macosArm64 { binaries { executable { entryPoint = "org.litote.mastodon.ktor.sdk.cli.main" } } }
+    mingwX64 { binaries { executable { entryPoint = "org.litote.mastodon.ktor.sdk.cli.main" } } }
+
     sourceSets {
         commonMain.dependencies {
             implementation(project(":sdk:send"))
@@ -14,6 +19,8 @@ kotlin {
             implementation(project(":client:media-api-v2-media-post-client"))
             implementation(project(":client:shared-accountsapiv1accountsidstatusesget-4016b7e9"))
             implementation(libs.kotlinx.io.core)
+            implementation(libs.clikt)
+            implementation(libs.mordant)
         }
         jvmMain.dependencies {
             runtimeOnly(libs.slf4j.simple)
@@ -38,7 +45,7 @@ tasks.named<ShadowJar>("shadowJar") {
     configurations = listOf(project.configurations.getByName("jvmRuntimeClasspath"))
     from(tasks.named("jvmJar"))
     manifest {
-        attributes["Main-Class"] = "org.litote.mastodon.ktor.sdk.send.MastodonCliMainKt"
+        attributes["Main-Class"] = "org.litote.mastodon.ktor.sdk.cli.MainKt"
     }
     mergeServiceFiles()
 }

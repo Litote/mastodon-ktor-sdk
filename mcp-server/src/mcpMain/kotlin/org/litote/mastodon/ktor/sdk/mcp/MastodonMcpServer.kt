@@ -23,6 +23,12 @@ import org.litote.mastodon.ktor.sdk.send.SendSdk
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget4016b7e9.model.StatusVisibilityEnum
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.Status as MastodonStatus
 
+private const val ARG_TEXT = "text"
+private const val ARG_VISIBILITY = "visibility"
+private const val ARG_LANGUAGE = "language"
+private const val ARG_SPOILER_TEXT = "spoiler_text"
+private const val ARG_IN_REPLY_TO_ID = "in_reply_to_id"
+
 internal class MastodonMcpServer(
     config: SdkConfiguration,
 ) {
@@ -46,28 +52,28 @@ internal class MastodonMcpServer(
                     ToolSchema(
                         properties =
                             buildJsonObject {
-                                putJsonObject("text") {
+                                putJsonObject(ARG_TEXT) {
                                     put("type", "string")
                                     put("description", "The text content of the status to post.")
                                 }
-                                putJsonObject("visibility") {
+                                putJsonObject(ARG_VISIBILITY) {
                                     put("type", "string")
                                     put("description", "Visibility of the status: public, unlisted, private, or direct.")
                                 }
-                                putJsonObject("language") {
+                                putJsonObject(ARG_LANGUAGE) {
                                     put("type", "string")
                                     put("description", "ISO 639-1 two-letter language code of the status (e.g. 'en', 'fr').")
                                 }
-                                putJsonObject("spoiler_text") {
+                                putJsonObject(ARG_SPOILER_TEXT) {
                                     put("type", "string")
                                     put("description", "Content warning text shown before the status body.")
                                 }
-                                putJsonObject("in_reply_to_id") {
+                                putJsonObject(ARG_IN_REPLY_TO_ID) {
                                     put("type", "string")
                                     put("description", "ID of the status this post is replying to.")
                                 }
                             },
-                        required = listOf("text"),
+                        required = listOf(ARG_TEXT),
                     ),
             ) { request ->
                 handleSendTextStatus(request.params.arguments) { sendSdk.sendText(it) }
@@ -90,7 +96,7 @@ internal suspend fun handleSendTextStatus(
     args: Map<String, JsonElement>?,
     sendText: suspend (TextStatus) -> SendResult,
 ): CallToolResult {
-    val text = args?.get("text")?.jsonPrimitive?.content
+    val text = args?.get(ARG_TEXT)?.jsonPrimitive?.content
     if (text.isNullOrBlank()) {
         return CallToolResult(
             content = listOf(TextContent("Missing or empty 'text' argument")),
@@ -98,12 +104,12 @@ internal suspend fun handleSendTextStatus(
         )
     }
     val visibility =
-        args["visibility"]?.jsonPrimitive?.content?.let { v ->
+        args[ARG_VISIBILITY]?.jsonPrimitive?.content?.let { v ->
             StatusVisibilityEnum.entries.firstOrNull { it.name.lowercase() == v.lowercase() }
         }
-    val language = args["language"]?.jsonPrimitive?.content
-    val spoilerText = args["spoiler_text"]?.jsonPrimitive?.content
-    val inReplyToId = args["in_reply_to_id"]?.jsonPrimitive?.content
+    val language = args[ARG_LANGUAGE]?.jsonPrimitive?.content
+    val spoilerText = args[ARG_SPOILER_TEXT]?.jsonPrimitive?.content
+    val inReplyToId = args[ARG_IN_REPLY_TO_ID]?.jsonPrimitive?.content
 
     val status =
         TextStatus(
@@ -133,16 +139,11 @@ internal suspend fun handleSendTextStatus(
             CallToolResult(content = listOf(TextContent("Status posted: $url")), isError = false)
         }
 
-        is SendResult.PostFailure -> {
+        is SendResult.PostFailure,
+        is SendResult.UploadFailure,
+        -> {
             CallToolResult(
                 content = listOf(TextContent("Failed to post status")),
-                isError = true,
-            )
-        }
-
-        is SendResult.UploadFailure -> {
-            CallToolResult(
-                content = listOf(TextContent("Unexpected upload failure")),
                 isError = true,
             )
         }

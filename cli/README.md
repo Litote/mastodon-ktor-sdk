@@ -4,19 +4,26 @@ Command-line tools to post statuses to Mastodon, built on top of `sdk:send`.
 
 ## Using the CLI outside this project
 
-Each GitHub Release attaches a standalone fat JAR (`mastodon-cli-<version>.jar`) that bundles
-all dependencies. Only Java 17+ is required — no Gradle, no clone.
+Download from the [latest release](https://github.com/Litote/mastodon-ktor-sdk/releases/latest):
 
-**1. Download the JAR from the [latest release](https://github.com/Litote/mastodon-ktor-sdk/releases/latest).**
+| Distribution | Requires | Release asset |
+|---|---|---|
+| Fat JAR | Java 17+ | `mastodon-cli-<version>.jar` |
+| Native binary (Linux x64) | nothing | `mastodon-cli-linux-x64` |
+| Native binary (Linux ARM64) | nothing | `mastodon-cli-linux-arm64` |
+| Native binary (macOS ARM64) | nothing | `mastodon-cli-macos-arm64` |
+| Native binary (Windows x64) | nothing | `mastodon-cli-windows-x64.exe` |
 
-**2. Run it:**
+**Run it:**
 
 ```bash
-java -jar mastodon-cli-<version>.jar send-text \
+# Native binary
+mastodon-cli-linux-x64 send-text \
   --server mastodon.social --token <token> "Hello from the terminal!"
 
-java -jar mastodon-cli-<version>.jar send-media \
-  --server mastodon.social --token <token> "My caption" photo.jpg "Alt text"
+# Fat JAR
+java -jar mastodon-cli-<version>.jar send-text \
+  --server mastodon.social --token <token> "Hello from the terminal!"
 ```
 
 **Available commands:**
@@ -26,14 +33,14 @@ java -jar mastodon-cli-<version>.jar send-media \
 | `send-text` | Post a plain-text status |
 | `send-media` | Post a status with media attachments |
 
-> **Tip:** create a shell alias to avoid repeating the `java -jar` prefix:
+> **Tip (fat JAR):** create a shell alias to avoid repeating the `java -jar` prefix:
 > ```bash
 > alias mastodon-cli='java -jar ~/bin/mastodon-cli-<version>.jar'
 > ```
 
 ---
 
-Both commands are also runnable via Gradle and require a JVM.
+Both commands are also runnable via Gradle.
 
 ## SendText — post a text status
 
