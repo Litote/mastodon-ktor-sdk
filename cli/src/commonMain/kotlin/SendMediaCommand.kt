@@ -1,6 +1,6 @@
 package org.litote.mastodon.ktor.sdk.cli
 
-import com.github.ajalt.clikt.command.SuspendingCliktCommand
+import com.github.ajalt.clikt.command.CoreSuspendingCliktCommand
 import com.github.ajalt.clikt.core.CliktError
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
@@ -16,7 +16,7 @@ import org.litote.mastodon.ktor.sdk.send.SendResult
 import org.litote.mastodon.ktor.sdk.send.SendSdk
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget4016b7e9.model.StatusVisibilityEnum
 
-internal class SendMediaCommand : SuspendingCliktCommand(name = "send-media") {
+internal class SendMediaCommand : CoreSuspendingCliktCommand(name = "send-media") {
     private val server by option("--server", help = "Mastodon instance hostname (e.g. mastodon.social)").required()
     private val token by option("--token", help = "OAuth access token").required()
     private val visibility by option("--visibility", help = "Status visibility: public, unlisted, private, direct").default("unlisted")

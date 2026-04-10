@@ -16,7 +16,7 @@ generator = { id = "org.litote.openapi.ktor.client.generator.gradle", version.re
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 
 [libraries]
-clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
+clikt = { module = "com.github.ajalt.clikt:clikt-core", version.ref = "clikt" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 mordant = { module = "com.github.ajalt.mordant:mordant", version.ref = "mordant" }
 kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }

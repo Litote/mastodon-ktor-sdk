@@ -1,9 +1,9 @@
 package org.litote.mastodon.ktor.sdk.cli
 
-import com.github.ajalt.clikt.command.SuspendingCliktCommand
+import com.github.ajalt.clikt.command.CoreSuspendingCliktCommand
 import com.github.ajalt.clikt.core.subcommands
 
-internal class MastodonCli : SuspendingCliktCommand(name = "mastodon-cli") {
+internal class MastodonCli : CoreSuspendingCliktCommand(name = "mastodon-cli") {
     init {
         subcommands(SendTextCommand(), SendMediaCommand())
     }

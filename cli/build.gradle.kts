@@ -22,7 +22,6 @@ kotlin {
             implementation(project(":client:shared-accountsapiv1accountsidstatusesget-4016b7e9"))
             implementation(libs.kotlinx.io.core)
             implementation(libs.clikt)
-            implementation(libs.mordant)
         }
         jvmMain.dependencies {
             runtimeOnly(libs.slf4j.simple)
