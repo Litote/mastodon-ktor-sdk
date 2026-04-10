@@ -1,4 +1,4 @@
-/mcp# Mastodon MCP Server
+# Mastodon MCP Server
 
 Exposes Mastodon operations as [MCP](https://modelcontextprotocol.io/) tools, usable from any MCP client such as Claude Desktop or Claude Code.
 
