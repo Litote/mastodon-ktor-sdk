@@ -9,8 +9,10 @@ kotlin {
     // Native binaries only for server/desktop targets
     linuxX64 { binaries { executable { entryPoint = "org.litote.mastodon.ktor.sdk.mcp.main" } } }
     linuxArm64 { binaries { executable { entryPoint = "org.litote.mastodon.ktor.sdk.mcp.main" } } }
-    macosArm64 { binaries { executable { entryPoint = "org.litote.mastodon.ktor.sdk.mcp.main" } } }
     mingwX64 { binaries { executable { entryPoint = "org.litote.mastodon.ktor.sdk.mcp.main" } } }
+    if (providers.gradleProperty("appleTargets").map { it.toBoolean() }.getOrElse(true)) {
+        macosArm64 { binaries { executable { entryPoint = "org.litote.mastodon.ktor.sdk.mcp.main" } } }
+    }
 
     sourceSets {
         // kotlin-sdk-server does not publish tvos/watchos targets.
@@ -43,7 +45,9 @@ kotlin {
         }
         linuxX64Main { dependsOn(serverUnixMain) }
         linuxArm64Main { dependsOn(serverUnixMain) }
-        macosArm64Main { dependsOn(serverUnixMain) }
+        if (providers.gradleProperty("appleTargets").map { it.toBoolean() }.getOrElse(true)) {
+            macosArm64Main { dependsOn(serverUnixMain) }
+        }
         // mingwX64Main provides its own actual via serverNativeMain expect/actual.
         mingwX64Main { dependsOn(serverNativeMain) }
 

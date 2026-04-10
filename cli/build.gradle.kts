@@ -8,8 +8,10 @@ plugins {
 kotlin {
     linuxX64 { binaries { executable { entryPoint = "org.litote.mastodon.ktor.sdk.cli.main" } } }
     linuxArm64 { binaries { executable { entryPoint = "org.litote.mastodon.ktor.sdk.cli.main" } } }
-    macosArm64 { binaries { executable { entryPoint = "org.litote.mastodon.ktor.sdk.cli.main" } } }
     mingwX64 { binaries { executable { entryPoint = "org.litote.mastodon.ktor.sdk.cli.main" } } }
+    if (providers.gradleProperty("appleTargets").map { it.toBoolean() }.getOrElse(true)) {
+        macosArm64 { binaries { executable { entryPoint = "org.litote.mastodon.ktor.sdk.cli.main" } } }
+    }
 
     sourceSets {
         commonMain.dependencies {
