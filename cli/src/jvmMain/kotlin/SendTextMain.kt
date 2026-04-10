@@ -31,12 +31,25 @@ internal suspend fun runSendText(args: Array<String>) {
             visibility = visibilityEnum,
             language = config.language,
         )
-    if (parsed.simulate) {
-        println("[simulate] server:     ${config.server}")
-        println("[simulate] visibility: ${visibilityEnum.name.lowercase()}")
-        println("[simulate] language:   ${config.language}")
-        println("[simulate] text:       ${status.status}")
-        return
+    when (val result = SendSdk(config).sendText(status)) {
+        is SendResult.Simulated -> {
+            val info = result.info
+            println("[simulate] server:     ${config.server}")
+            println("[simulate] visibility: ${info.visibility ?: visibilityEnum.name.lowercase()}")
+            println("[simulate] language:   ${info.language ?: config.language}")
+            println("[simulate] text:       ${info.text}")
+        }
+
+        is SendResult.Success -> {
+            Unit
+        }
+
+        is SendResult.PostFailure -> {
+            error("Failed to post status: ${result.response}")
+        }
+
+        is SendResult.UploadFailure -> {
+            error("Unexpected upload failure in sendText")
+        }
     }
-    SendSdk(config).sendText(status)
 }

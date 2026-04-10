@@ -10,12 +10,15 @@ import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
  * @property token OAuth2 bearer token used to authenticate API requests.
  * @property visibility Default visibility for posted statuses. Accepted values: `public`, `unlisted`, `private`, `direct`.
  * @property language BCP 47 language tag applied to posted statuses (e.g. `en`, `fr`).
+ * @property simulate When `true`, SDK calls return [org.litote.mastodon.ktor.sdk.send.SendResult.Simulated] without
+ *   contacting the Mastodon server.
  */
 public data class SdkConfiguration(
     val server: String,
     val token: String,
     val visibility: String = "unlisted",
     val language: String = "en",
+    val simulate: Boolean = false,
 )
 
 /**

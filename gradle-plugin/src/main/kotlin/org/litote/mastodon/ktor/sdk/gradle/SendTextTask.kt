@@ -55,6 +55,7 @@ abstract class SendTextTask : DefaultTask() {
                 token = token.get(),
                 visibility = visibility.get(),
                 language = language.get(),
+                simulate = simulate.get(),
             )
         val visibilityEnum =
             StatusVisibilityEnum.entries.firstOrNull {
@@ -66,17 +67,26 @@ abstract class SendTextTask : DefaultTask() {
                 visibility = visibilityEnum,
                 language = language.get(),
             )
-        if (simulate.get()) {
-            logger.lifecycle("[simulate] server:     ${server.get()}")
-            logger.lifecycle("[simulate] visibility: ${visibilityEnum.name.lowercase()}")
-            logger.lifecycle("[simulate] language:   ${language.get()}")
-            logger.lifecycle("[simulate] text:       ${text.get()}")
-            return
-        }
         when (val result = runBlocking { SendSdk(config).sendText(status) }) {
-            is SendResult.Success -> logger.lifecycle("Status posted successfully")
-            is SendResult.PostFailure -> error("Failed to post status: ${result.response}")
-            is SendResult.UploadFailure -> error("Unexpected upload failure in sendText")
+            is SendResult.Simulated -> {
+                val info = result.info
+                logger.lifecycle("[simulate] server:     ${server.get()}")
+                logger.lifecycle("[simulate] visibility: ${info.visibility ?: visibilityEnum.name.lowercase()}")
+                logger.lifecycle("[simulate] language:   ${info.language ?: language.get()}")
+                logger.lifecycle("[simulate] text:       ${info.text}")
+            }
+
+            is SendResult.Success -> {
+                logger.lifecycle("Status posted successfully")
+            }
+
+            is SendResult.PostFailure -> {
+                error("Failed to post status: ${result.response}")
+            }
+
+            is SendResult.UploadFailure -> {
+                error("Unexpected upload failure in sendText")
+            }
         }
     }
 }

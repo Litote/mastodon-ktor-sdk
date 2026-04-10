@@ -25,18 +25,20 @@ configure(
         project(":sdk:configuration"),
         project(":sdk:send"),
         project(":cli"),
+        project(":mcp-server"),
         project(":gradle-plugin"),
     ),
 ) {
     apply(plugin = "org.jetbrains.dokka")
 }
 
-// Aggregate the four hand-written modules into a single KDoc publication at the root.
+// Aggregate the hand-written modules into a single KDoc publication at the root.
 // Running `./gradlew dokkaGeneratePublicationHtml` produces the site in build/dokka/html/.
 dependencies {
     dokka(project(":sdk:configuration"))
     dokka(project(":sdk:send"))
     dokka(project(":cli"))
+    dokka(project(":mcp-server"))
     dokka(project(":gradle-plugin"))
 }
 
@@ -143,7 +145,11 @@ sonar {
             layout.buildDirectory.file("reports/jacoco/jacocoAggregatedReport/jacocoAggregatedReport.xml").get().asFile.absolutePath,
         )
         // Gradle plugin and convention modules are build tooling — no unit tests expected.
-        property("sonar.coverage.exclusions", "**/gradle-plugin/**,**/convention/**")
+        // Native I/O source sets contain platform-specific stdin/stdout wrappers — untestable from the JVM.
+        property(
+            "sonar.coverage.exclusions",
+            "**/gradle-plugin/**,**/convention/**,**/serverNativeMain/**,**/serverUnixMain/**,**/mingwX64Main/**",
+        )
     }
 }
 

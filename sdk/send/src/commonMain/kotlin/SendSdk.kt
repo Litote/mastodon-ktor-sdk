@@ -15,6 +15,38 @@ import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApi
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.CreateStatusResponse as StatusBody
 
 /**
+ * Describes a media attachment that would be uploaded in simulate mode.
+ *
+ * @property sizeBytes Size of the attachment in bytes.
+ * @property contentType MIME type of the attachment (e.g. `image/png`).
+ * @property description Optional alt-text description.
+ */
+public data class AttachmentInfo(
+    val sizeBytes: Int,
+    val contentType: String,
+    val description: String?,
+)
+
+/**
+ * Details about the status that would have been posted when simulate mode is active.
+ *
+ * @property text Status text that would be posted.
+ * @property visibility Resolved visibility value, or `null` if not set on the status.
+ * @property language Language code, or `null` if not set on the status.
+ * @property spoilerText Content warning text, or `null` if not set.
+ * @property inReplyToId ID of the status being replied to, or `null` if not set.
+ * @property attachments Media attachments that would have been uploaded; empty for text-only statuses.
+ */
+public data class SimulateInfo(
+    val text: String,
+    val visibility: String?,
+    val language: String?,
+    val spoilerText: String?,
+    val inReplyToId: String?,
+    val attachments: List<AttachmentInfo> = emptyList(),
+)
+
+/**
  * Sealed result type returned by [SendSdk] operations.
  *
  * Callers should `when`-exhaustively handle all variants to distinguish success from failure.
@@ -48,6 +80,15 @@ public sealed class SendResult {
     public data class PostFailure(
         val response: CreateStatusResponse,
     ) : SendResult()
+
+    /**
+     * The status was not sent because simulate mode is active.
+     *
+     * @property info Details about what would have been posted.
+     */
+    public data class Simulated(
+        val info: SimulateInfo,
+    ) : SendResult()
 }
 
 /**
@@ -61,11 +102,12 @@ public sealed class SendResult {
  * val result = sdk.sendText(TextStatus(status = "Hello, Mastodon!"))
  * ```
  */
-public class SendSdk internal constructor(
+public class SendSdk public constructor(
     private val clientConfig: ClientConfiguration,
+    private val simulate: Boolean = false,
 ) {
     /** Creates a [SendSdk] configured from the given [SdkConfiguration]. */
-    public constructor(config: SdkConfiguration) : this(config.toClientConfiguration())
+    public constructor(config: SdkConfiguration) : this(config.toClientConfiguration(), config.simulate)
 
     /**
      * Posts a plain-text status.
@@ -76,6 +118,17 @@ public class SendSdk internal constructor(
      */
     public suspend fun sendText(text: TextStatus): SendResult {
         require(text.status.isNotBlank()) { "Status text is required" }
+        if (simulate) {
+            return SendResult.Simulated(
+                SimulateInfo(
+                    text = text.status,
+                    visibility = text.visibility?.name?.lowercase(),
+                    language = text.language,
+                    spoilerText = text.spoilerText,
+                    inReplyToId = text.inReplyToId,
+                ),
+            )
+        }
         val client = StatusesApiV1StatusesPostClient(clientConfig)
         return when (val response = client.createStatus(text)) {
             is CreateStatusResponseSuccess -> {
@@ -106,7 +159,25 @@ public class SendSdk internal constructor(
     ): SendResult {
         require(attachments.isNotEmpty()) { "At least one attachment is required" }
         require(attachments.size <= 4) { "At most 4 attachments are supported" }
-
+        if (simulate) {
+            return SendResult.Simulated(
+                SimulateInfo(
+                    text = status.status ?: "",
+                    visibility = status.visibility?.name?.lowercase(),
+                    language = status.language,
+                    spoilerText = status.spoilerText,
+                    inReplyToId = status.inReplyToId,
+                    attachments =
+                        attachments.map { form ->
+                            AttachmentInfo(
+                                sizeBytes = form.file.bytes.size,
+                                contentType = form.file.contentType.toString(),
+                                description = form.description,
+                            )
+                        },
+                ),
+            )
+        }
         val mediaClient = MediaApiV2MediaPostClient(clientConfig)
         val mediaIds = mutableListOf<String>()
 

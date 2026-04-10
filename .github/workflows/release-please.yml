@@ -138,6 +138,24 @@ jobs:
           TAG: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
         run: gh release upload "$TAG" cli/build/libs/mastodon-cli-*.jar --clobber
 
+      - name: Build MCP Server fat JAR & native binaries (Linux / Windows)
+        run: ./gradlew :mcp-server:shadowJar :mcp-server:linkReleaseExecutableLinuxX64 :mcp-server:linkReleaseExecutableLinuxArm64 :mcp-server:linkReleaseExecutableMingwX64
+
+      - name: Upload MCP Server artifacts to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
+        run: |
+          cp mcp-server/build/bin/linuxX64/releaseExecutable/mcp-server.kexe mastodon-mcp-server-linux-x64
+          cp mcp-server/build/bin/linuxArm64/releaseExecutable/mcp-server.kexe mastodon-mcp-server-linux-arm64
+          cp mcp-server/build/bin/mingwX64/releaseExecutable/mcp-server.exe mastodon-mcp-server-windows-x64.exe
+          gh release upload "$TAG" \
+            mcp-server/build/libs/mastodon-mcp-server-*.jar \
+            mastodon-mcp-server-linux-x64 \
+            mastodon-mcp-server-linux-arm64 \
+            mastodon-mcp-server-windows-x64.exe \
+            --clobber
+
   publish-macos:
     name: Publish ${{ needs.release-please.outputs.tag_name || inputs.tag }} (Apple chunk ${{ matrix.chunk }})
     runs-on: macos-latest
@@ -148,7 +166,7 @@ jobs:
       matrix:
         chunk: [0, 1, 2, 3]
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -217,6 +235,19 @@ jobs:
             -x publishLinuxArm64PublicationToMavenCentralRepository \
             -x publishMingwX64PublicationToMavenCentralRepository \
             -x publishKotlinMultiplatformPublicationToMavenCentralRepository
+
+      - name: Build MCP Server native binary (macOS ARM64)
+        if: matrix.chunk == 0
+        run: ./gradlew :mcp-server:linkReleaseExecutableMacosArm64
+
+      - name: Upload MCP Server macOS binary to GitHub Release
+        if: matrix.chunk == 0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
+        run: |
+          cp mcp-server/build/bin/macosArm64/releaseExecutable/mcp-server.kexe mastodon-mcp-server-macos-arm64
+          gh release upload "$TAG" mastodon-mcp-server-macos-arm64 --clobber
 
   docs:
     name: Publish KDoc to GitHub Pages

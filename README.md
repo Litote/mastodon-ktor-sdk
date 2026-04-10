@@ -25,6 +25,7 @@ Kotlin Multiplatform SDK for the [Mastodon API](https://docs.joinmastodon.org/me
 - *alpha stage* SDK for operation composition (e.g. upload an image and post a media status)
 - *alpha stage* Gradle plugin for usage with Gradle projects
 - *alpha stage* CLI tools for command-line usage
+- *alpha stage* MCP server to expose Mastodon tools to AI assistants (Claude Desktop, Claude Code, etc.)
 
 ## Using the generated clients
 
@@ -71,6 +72,12 @@ See [sdk/README.md](sdk/README.md) for usage.
 For projects that build with Gradle, the `gradle-plugin` module provides `sendText` and `sendMedia` tasks that call the SDK directly — no shell invocation needed.
 
 See [gradle-plugin/README.md](gradle-plugin/README.md) for setup and usage.
+
+## *alpha stage* MCP Server
+
+Expose Mastodon tools to any MCP client (Claude Desktop, Claude Code, etc.) via a STDIO transport.
+
+See [mcp-server/README.md](mcp-server/README.md) for setup and usage.
 
 ## *alpha stage* CLI
 

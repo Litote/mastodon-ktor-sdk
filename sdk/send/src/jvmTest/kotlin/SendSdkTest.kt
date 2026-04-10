@@ -19,8 +19,10 @@ import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPo
 import org.litote.mastodon.ktor.sdk.model.MediaStatus
 import org.litote.mastodon.ktor.sdk.model.TextStatus
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
 class SendSdkTest {
     private val statusJson =
@@ -268,5 +270,49 @@ class SendSdkTest {
             val result = sdk.sendMedia(status, listOf(fakeAttachment()))
 
             assertIs<SendResult.PostFailure>(result)
+        }
+
+    @Test
+    fun `GIVEN simulate=true WHEN sendText THEN returns Simulated without calling server`() =
+        runTest {
+            val config = ClientConfiguration(baseUrl = "https://mastodon.social/", json = jsonConfig)
+            val sdk = SendSdk(config, simulate = true)
+
+            val result = sdk.sendText(TextStatus(status = "Hello simulate"))
+
+            assertIs<SendResult.Simulated>(result)
+            val info = result.info
+            assertEquals("Hello simulate", info.text)
+            assertTrue(info.attachments.isEmpty())
+        }
+
+    @Test
+    fun `GIVEN simulate=true and visibility WHEN sendText THEN SimulateInfo carries visibility`() =
+        runTest {
+            val config = ClientConfiguration(baseUrl = "https://mastodon.social/", json = jsonConfig)
+            val sdk = SendSdk(config, simulate = true)
+            val visibility =
+                org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget4016b7e9.model.StatusVisibilityEnum.PUBLIC
+
+            val result = sdk.sendText(TextStatus(status = "Hi", visibility = visibility))
+
+            assertIs<SendResult.Simulated>(result)
+            assertEquals("public", result.info.visibility)
+        }
+
+    @Test
+    fun `GIVEN simulate=true WHEN sendMedia THEN returns Simulated with attachment info`() =
+        runTest {
+            val config = ClientConfiguration(baseUrl = "https://mastodon.social/", json = jsonConfig)
+            val sdk = SendSdk(config, simulate = true)
+            val status = MediaStatus(mediaIds = emptyList(), status = "Look!")
+
+            val result = sdk.sendMedia(status, listOf(fakeAttachment()))
+
+            assertIs<SendResult.Simulated>(result)
+            val info = result.info
+            assertEquals("Look!", info.text)
+            assertEquals(1, info.attachments.size)
+            assertEquals(3, info.attachments[0].sizeBytes)
         }
 }

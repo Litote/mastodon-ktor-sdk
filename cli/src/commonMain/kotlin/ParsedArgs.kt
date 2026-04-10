@@ -63,6 +63,7 @@ public fun parseArgs(args: Array<String>): ParsedArgs {
                 token = token,
                 visibility = named["--visibility"] ?: "unlisted",
                 language = named["--language"] ?: "en",
+                simulate = simulate,
             ),
         remaining = remaining,
         simulate = simulate,

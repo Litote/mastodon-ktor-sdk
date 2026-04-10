@@ -33,4 +33,5 @@ include(":client:shared", ":client:shared-appsapiv1appspost-df6bf73e", ":client:
 include(":sdk:configuration")
 include(":sdk:send")
 include(":cli")
+include(":mcp-server")
 include(":gradle-plugin")

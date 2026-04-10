@@ -102,6 +102,7 @@ abstract class SendMediaTask : DefaultTask() {
                 token = token.get(),
                 visibility = visibility.get(),
                 language = language.get(),
+                simulate = simulate.get(),
             )
         val visibilityEnum =
             StatusVisibilityEnum.entries.firstOrNull {
@@ -128,23 +129,31 @@ abstract class SendMediaTask : DefaultTask() {
                 visibility = visibilityEnum,
                 language = language.get(),
             )
-        if (simulate.get()) {
-            logger.lifecycle("[simulate] server:     ${server.get()}")
-            logger.lifecycle("[simulate] visibility: ${visibilityEnum.name.lowercase()}")
-            logger.lifecycle("[simulate] language:   ${language.get()}")
-            logger.lifecycle("[simulate] text:       ${text.get()}")
-            allAttachments.forEachIndexed { index, attachment ->
-                val file = java.io.File(attachment.filePath)
-                val size = if (file.exists()) "${file.length()} bytes" else "file not found"
-                val alt = attachment.description ?: "(no alt text)"
-                logger.lifecycle("[simulate] attach[$index]: ${attachment.filePath} — $alt ($size)")
-            }
-            return
-        }
         when (val result = runBlocking { SendSdk(config).sendMedia(status, forms) }) {
-            is SendResult.Success -> logger.lifecycle("Status posted successfully")
-            is SendResult.PostFailure -> error("Failed to post status: ${result.response}")
-            is SendResult.UploadFailure -> error("Failed to upload media: ${result.form}")
+            is SendResult.Simulated -> {
+                val info = result.info
+                logger.lifecycle("[simulate] server:     ${server.get()}")
+                logger.lifecycle("[simulate] visibility: ${info.visibility ?: visibilityEnum.name.lowercase()}")
+                logger.lifecycle("[simulate] language:   ${info.language ?: language.get()}")
+                logger.lifecycle("[simulate] text:       ${info.text}")
+                info.attachments.forEachIndexed { index, attachment ->
+                    val filePath = allAttachments.getOrNull(index)?.filePath ?: "(unknown)"
+                    val alt = attachment.description ?: "(no alt text)"
+                    logger.lifecycle("[simulate] attach[$index]: $filePath — $alt (${attachment.sizeBytes} bytes)")
+                }
+            }
+
+            is SendResult.Success -> {
+                logger.lifecycle("Status posted successfully")
+            }
+
+            is SendResult.PostFailure -> {
+                error("Failed to post status: ${result.response}")
+            }
+
+            is SendResult.UploadFailure -> {
+                error("Failed to upload media: ${result.form}")
+            }
         }
     }
 }

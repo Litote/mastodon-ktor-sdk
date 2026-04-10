@@ -53,28 +53,43 @@ internal suspend fun runSendMedia(args: Array<String>) {
         StatusVisibilityEnum.entries.firstOrNull { it.name == config.visibility.uppercase() }
             ?: StatusVisibilityEnum.UNLISTED
 
-    if (parsed.simulate) {
-        println("[simulate] server:     ${config.server}")
-        println("[simulate] visibility: ${visibilityEnum.name.lowercase()}")
-        println("[simulate] language:   ${config.language}")
-        println("[simulate] text:       ${remaining[0]}")
-        mediaAttachments.forEachIndexed { index, attachment ->
-            val file = java.io.File(attachment.filePath)
-            val size = if (file.exists()) "${file.length()} bytes" else "file not found"
-            val alt = attachment.description ?: "(no alt text)"
-            println("[simulate] attach[$index]: ${attachment.filePath} — $alt ($size)")
+    val forms = mediaAttachments.map { commandLine.toForm(it) }
+    when (
+        val result =
+            SendSdk(config).sendMedia(
+                status =
+                    MediaStatus(
+                        status = remaining[0],
+                        mediaIds = emptyList(),
+                        visibility = visibilityEnum,
+                        language = config.language,
+                    ),
+                attachments = forms,
+            )
+    ) {
+        is SendResult.Simulated -> {
+            val info = result.info
+            println("[simulate] server:     ${config.server}")
+            println("[simulate] visibility: ${info.visibility ?: visibilityEnum.name.lowercase()}")
+            println("[simulate] language:   ${info.language ?: config.language}")
+            println("[simulate] text:       ${info.text}")
+            info.attachments.forEachIndexed { index, attachment ->
+                val filePath = mediaAttachments.getOrNull(index)?.filePath ?: "(unknown)"
+                val alt = attachment.description ?: "(no alt text)"
+                println("[simulate] attach[$index]: $filePath — $alt (${attachment.sizeBytes} bytes)")
+            }
         }
-        return
-    }
 
-    SendSdk(config).sendMedia(
-        status =
-            MediaStatus(
-                status = remaining[0],
-                mediaIds = emptyList(),
-                visibility = visibilityEnum,
-                language = config.language,
-            ),
-        attachments = mediaAttachments.map { commandLine.toForm(it) },
-    )
+        is SendResult.Success -> {
+            Unit
+        }
+
+        is SendResult.PostFailure -> {
+            error("Failed to post status: ${result.response}")
+        }
+
+        is SendResult.UploadFailure -> {
+            error("Failed to upload media: ${result.form}")
+        }
+    }
 }
