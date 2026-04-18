@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/Litote/mastodon-ktor-sdk/compare/v0.2.0...v0.2.1) (2026-04-18)
+
+
+### Bug Fixes
+
+* cli build error - "ld.lld: error: duplicate symbol" ([ff3789a](https://github.com/Litote/mastodon-ktor-sdk/commit/ff3789a0a4ec8827187d6b4306451979fa73a6e9))
+
 ## [0.2.0](https://github.com/Litote/mastodon-ktor-sdk/compare/v0.1.0...v0.2.0) (2026-04-10)
 
 
