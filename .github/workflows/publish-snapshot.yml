@@ -75,4 +75,4 @@ jobs:
             SHARED=$(ls client/ | grep "^shared" | sed 's/^/:client:/' | sed 's/$/:publishToMavenCentral/' | tr '\n' ' ')
             TASKS="$TASKS $SHARED :sdk:configuration:publishToMavenCentral :sdk:send:publishToMavenCentral"
           fi
-          ./gradlew $TASKS --max-workers=8
+          ./gradlew $TASKS --max-workers=2
