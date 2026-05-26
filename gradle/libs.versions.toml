@@ -1,6 +1,6 @@
 [versions]
 clikt = "5.1.0"
-coroutines = "1.10.2"
+coroutines = "1.11.0"
 dokka = "2.2.0"
 generator = "0.6.1"
 kotlinx-io = "0.9.0"
