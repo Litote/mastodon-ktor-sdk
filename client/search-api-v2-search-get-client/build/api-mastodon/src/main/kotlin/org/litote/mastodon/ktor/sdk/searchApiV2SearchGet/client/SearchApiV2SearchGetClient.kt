@@ -2,20 +2,21 @@ package org.litote.mastodon.ktor.sdk.searchApiV2SearchGet.client
 
 import io.ktor.client.call.body
 import io.ktor.client.request.`get`
+import io.ktor.http.Headers
 import kotlin.Boolean
 import kotlin.Int
 import kotlin.Long
 import kotlin.String
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
 import org.litote.mastodon.ktor.sdk.model.Search
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 
-public class SearchApiV2SearchGetClient(
-  private val configuration: ClientConfiguration = defaultClientConfiguration,
-) {
+public interface SearchApiV2SearchGetClient {
   /**
    * Perform a search
    */
@@ -30,7 +31,89 @@ public class SearchApiV2SearchGetClient(
     offset: Long? = null,
     resolve: Boolean? = null,
     type: String? = null,
-  ): GetSearchV2Response {
+  ): GetSearchV2Response
+
+  @Serializable
+  public sealed class GetSearchV2Response {
+    public abstract val headers: Headers
+  }
+
+  @Serializable
+  public data class GetSearchV2ResponseSuccess(
+    public val body: Search,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetSearchV2Response() {
+    /**
+     * Pagination links for browsing older or newer results. Format: Link: <https://mastodon.example/api/v1/endpoint?max_id=7163058>; rel="next", <https://mastodon.example/api/v1/endpoint?min_id=7275607>; rel="prev". See [RFC 8288](https://www.rfc-editor.org/rfc/rfc8288) for more information.
+     */
+    public val link: String?
+      get() = headers["Link"]
+
+    /**
+     * Number of requests permitted per time period
+     */
+    public val xRateLimitLimit: Int?
+      get() = headers["X-RateLimit-Limit"]?.toIntOrNull()
+
+    /**
+     * Number of requests you can still make
+     */
+    public val xRateLimitRemaining: Int?
+      get() = headers["X-RateLimit-Remaining"]?.toIntOrNull()
+
+    /**
+     * Timestamp when your rate limit will reset
+     */
+    public val xRateLimitReset: String?
+      get() = headers["X-RateLimit-Reset"]
+  }
+
+  @Serializable
+  public data class GetSearchV2ResponseFailure401(
+    public val body: Error,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetSearchV2Response()
+
+  @Serializable
+  public data class GetSearchV2ResponseFailure410(
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetSearchV2Response()
+
+  @Serializable
+  public data class GetSearchV2ResponseFailure(
+    public val body: ValidationError,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetSearchV2Response()
+
+  @Serializable
+  public data class GetSearchV2ResponseUnknownFailure(
+    public val statusCode: Int,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetSearchV2Response()
+}
+
+public fun SearchApiV2SearchGetClient(configuration: ClientConfiguration = defaultClientConfiguration): SearchApiV2SearchGetClient = DefaultSearchApiV2SearchGetClient(configuration)
+
+public class DefaultSearchApiV2SearchGetClient(
+  private val configuration: ClientConfiguration = defaultClientConfiguration,
+) : SearchApiV2SearchGetClient {
+  override suspend fun getSearchV2(
+    q: String,
+    accountId: String?,
+    excludeUnreviewed: Boolean?,
+    following: Boolean?,
+    limit: Long?,
+    maxId: String?,
+    minId: String?,
+    offset: Long?,
+    resolve: Boolean?,
+    type: String?,
+  ): SearchApiV2SearchGetClient.GetSearchV2Response {
     try {
       val response = configuration.client.`get`("api/v2/search") {
         url {
@@ -65,42 +148,19 @@ public class SearchApiV2SearchGetClient(
         }
       }
       return when (response.status.value) {
-        200 -> GetSearchV2ResponseSuccess(response.body<Search>())
-        401, 404, 429, 503 -> GetSearchV2ResponseFailure401(response.body<Error>())
-        410 -> GetSearchV2ResponseFailure410
-        422 -> GetSearchV2ResponseFailure(response.body<ValidationError>())
-        else -> GetSearchV2ResponseUnknownFailure(response.status.value)
+        200 -> SearchApiV2SearchGetClient.GetSearchV2ResponseSuccess(response.body<Search>(), response.headers)
+        401, 404, 429, 503 -> SearchApiV2SearchGetClient.GetSearchV2ResponseFailure401(response.body<Error>(), response.headers)
+        410 -> SearchApiV2SearchGetClient.GetSearchV2ResponseFailure410(response.headers)
+        422 -> SearchApiV2SearchGetClient.GetSearchV2ResponseFailure(response.body<ValidationError>(), response.headers)
+        else -> SearchApiV2SearchGetClient.GetSearchV2ResponseUnknownFailure(response.status.value, response.headers)
       }
+    }
+    catch(e: CancellationException) {
+      throw e
     }
     catch(e: Exception) {
       configuration.exceptionLogger(e)
-      return GetSearchV2ResponseUnknownFailure(500)
+      return SearchApiV2SearchGetClient.GetSearchV2ResponseUnknownFailure(500)
     }
   }
-
-  @Serializable
-  public sealed class GetSearchV2Response
-
-  @Serializable
-  public data class GetSearchV2ResponseSuccess(
-    public val body: Search,
-  ) : GetSearchV2Response()
-
-  @Serializable
-  public data class GetSearchV2ResponseFailure401(
-    public val body: Error,
-  ) : GetSearchV2Response()
-
-  @Serializable
-  public object GetSearchV2ResponseFailure410 : GetSearchV2Response()
-
-  @Serializable
-  public data class GetSearchV2ResponseFailure(
-    public val body: ValidationError,
-  ) : GetSearchV2Response()
-
-  @Serializable
-  public data class GetSearchV2ResponseUnknownFailure(
-    public val statusCode: Int,
-  ) : GetSearchV2Response()
 }

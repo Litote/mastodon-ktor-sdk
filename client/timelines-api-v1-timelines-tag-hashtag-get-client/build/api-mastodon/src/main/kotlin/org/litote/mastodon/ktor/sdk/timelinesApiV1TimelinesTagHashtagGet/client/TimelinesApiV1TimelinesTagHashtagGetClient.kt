@@ -2,22 +2,23 @@ package org.litote.mastodon.ktor.sdk.timelinesApiV1TimelinesTagHashtagGet.client
 
 import io.ktor.client.call.body
 import io.ktor.client.request.`get`
+import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Boolean
 import kotlin.Int
 import kotlin.Long
 import kotlin.String
 import kotlin.collections.List
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.Status
 
-public class TimelinesApiV1TimelinesTagHashtagGetClient(
-  private val configuration: ClientConfiguration = defaultClientConfiguration,
-) {
+public interface TimelinesApiV1TimelinesTagHashtagGetClient {
   /**
    * View hashtag timeline
    */
@@ -33,15 +34,98 @@ public class TimelinesApiV1TimelinesTagHashtagGetClient(
     onlyMedia: Boolean? = false,
     remote: Boolean? = false,
     sinceId: String? = null,
-  ): GetTimelinesTagByHashtagResponse {
+  ): GetTimelinesTagByHashtagResponse
+
+  @Serializable
+  public sealed class GetTimelinesTagByHashtagResponse {
+    public abstract val headers: Headers
+  }
+
+  @Serializable
+  public data class GetTimelinesTagByHashtagResponseSuccess(
+    public val body: List<Status>,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetTimelinesTagByHashtagResponse() {
+    /**
+     * Pagination links for browsing older or newer results. Format: Link: <https://mastodon.example/api/v1/endpoint?max_id=7163058>; rel="next", <https://mastodon.example/api/v1/endpoint?min_id=7275607>; rel="prev". See [RFC 8288](https://www.rfc-editor.org/rfc/rfc8288) for more information.
+     */
+    public val link: String?
+      get() = headers["Link"]
+
+    /**
+     * Number of requests permitted per time period
+     */
+    public val xRateLimitLimit: Int?
+      get() = headers["X-RateLimit-Limit"]?.toIntOrNull()
+
+    /**
+     * Number of requests you can still make
+     */
+    public val xRateLimitRemaining: Int?
+      get() = headers["X-RateLimit-Remaining"]?.toIntOrNull()
+
+    /**
+     * Timestamp when your rate limit will reset
+     */
+    public val xRateLimitReset: String?
+      get() = headers["X-RateLimit-Reset"]
+  }
+
+  @Serializable
+  public data class GetTimelinesTagByHashtagResponseFailure401(
+    public val body: Error,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetTimelinesTagByHashtagResponse()
+
+  @Serializable
+  public data class GetTimelinesTagByHashtagResponseFailure410(
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetTimelinesTagByHashtagResponse()
+
+  @Serializable
+  public data class GetTimelinesTagByHashtagResponseFailure(
+    public val body: ValidationError,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetTimelinesTagByHashtagResponse()
+
+  @Serializable
+  public data class GetTimelinesTagByHashtagResponseUnknownFailure(
+    public val statusCode: Int,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetTimelinesTagByHashtagResponse()
+}
+
+public fun TimelinesApiV1TimelinesTagHashtagGetClient(configuration: ClientConfiguration = defaultClientConfiguration): TimelinesApiV1TimelinesTagHashtagGetClient = DefaultTimelinesApiV1TimelinesTagHashtagGetClient(configuration)
+
+public class DefaultTimelinesApiV1TimelinesTagHashtagGetClient(
+  private val configuration: ClientConfiguration = defaultClientConfiguration,
+) : TimelinesApiV1TimelinesTagHashtagGetClient {
+  override suspend fun getTimelinesTagByHashtag(
+    hashtag: String,
+    all: List<String>?,
+    any: List<String>?,
+    limit: Long?,
+    local: Boolean?,
+    maxId: String?,
+    minId: String?,
+    none: List<String>?,
+    onlyMedia: Boolean?,
+    remote: Boolean?,
+    sinceId: String?,
+  ): TimelinesApiV1TimelinesTagHashtagGetClient.GetTimelinesTagByHashtagResponse {
     try {
       val response = configuration.client.`get`("api/v1/timelines/tag/{hashtag}".replace("/{hashtag}", "/${hashtag.encodeURLPathPart()}")) {
         url {
           if (all != null) {
-            parameters.append("all", all.joinToString(","))
+            parameters.appendAll("all", all)
           }
           if (any != null) {
-            parameters.append("any", any.joinToString(","))
+            parameters.appendAll("any", any)
           }
           if (limit != null) {
             parameters.append("limit", limit.toString())
@@ -56,7 +140,7 @@ public class TimelinesApiV1TimelinesTagHashtagGetClient(
             parameters.append("min_id", minId)
           }
           if (none != null) {
-            parameters.append("none", none.joinToString(","))
+            parameters.appendAll("none", none)
           }
           if (onlyMedia != null) {
             parameters.append("only_media", onlyMedia.toString())
@@ -70,51 +154,19 @@ public class TimelinesApiV1TimelinesTagHashtagGetClient(
         }
       }
       return when (response.status.value) {
-        200 -> GetTimelinesTagByHashtagResponseSuccess(response.body<List<Status>>())
-        401, 404, 429, 503 -> GetTimelinesTagByHashtagResponseFailure401(response.body<Error>())
-        410 -> GetTimelinesTagByHashtagResponseFailure410
-        422 -> GetTimelinesTagByHashtagResponseFailure(response.body<ValidationError>())
-        else -> GetTimelinesTagByHashtagResponseUnknownFailure(response.status.value)
+        200 -> TimelinesApiV1TimelinesTagHashtagGetClient.GetTimelinesTagByHashtagResponseSuccess(response.body<List<Status>>(), response.headers)
+        401, 404, 429, 503 -> TimelinesApiV1TimelinesTagHashtagGetClient.GetTimelinesTagByHashtagResponseFailure401(response.body<Error>(), response.headers)
+        410 -> TimelinesApiV1TimelinesTagHashtagGetClient.GetTimelinesTagByHashtagResponseFailure410(response.headers)
+        422 -> TimelinesApiV1TimelinesTagHashtagGetClient.GetTimelinesTagByHashtagResponseFailure(response.body<ValidationError>(), response.headers)
+        else -> TimelinesApiV1TimelinesTagHashtagGetClient.GetTimelinesTagByHashtagResponseUnknownFailure(response.status.value, response.headers)
       }
+    }
+    catch(e: CancellationException) {
+      throw e
     }
     catch(e: Exception) {
       configuration.exceptionLogger(e)
-      return GetTimelinesTagByHashtagResponseUnknownFailure(500)
+      return TimelinesApiV1TimelinesTagHashtagGetClient.GetTimelinesTagByHashtagResponseUnknownFailure(500)
     }
   }
-
-  @Serializable
-  public object All
-
-  @Serializable
-  public object Any
-
-  @Serializable
-  public object None
-
-  @Serializable
-  public sealed class GetTimelinesTagByHashtagResponse
-
-  @Serializable
-  public data class GetTimelinesTagByHashtagResponseSuccess(
-    public val body: List<Status>,
-  ) : GetTimelinesTagByHashtagResponse()
-
-  @Serializable
-  public data class GetTimelinesTagByHashtagResponseFailure401(
-    public val body: Error,
-  ) : GetTimelinesTagByHashtagResponse()
-
-  @Serializable
-  public object GetTimelinesTagByHashtagResponseFailure410 : GetTimelinesTagByHashtagResponse()
-
-  @Serializable
-  public data class GetTimelinesTagByHashtagResponseFailure(
-    public val body: ValidationError,
-  ) : GetTimelinesTagByHashtagResponse()
-
-  @Serializable
-  public data class GetTimelinesTagByHashtagResponseUnknownFailure(
-    public val statusCode: Int,
-  ) : GetTimelinesTagByHashtagResponse()
 }

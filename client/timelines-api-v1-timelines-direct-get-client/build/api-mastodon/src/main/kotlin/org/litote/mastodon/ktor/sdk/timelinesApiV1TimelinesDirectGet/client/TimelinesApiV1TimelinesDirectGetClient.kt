@@ -2,20 +2,21 @@ package org.litote.mastodon.ktor.sdk.timelinesApiV1TimelinesDirectGet.client
 
 import io.ktor.client.call.body
 import io.ktor.client.request.`get`
+import io.ktor.http.Headers
 import kotlin.Int
 import kotlin.Long
 import kotlin.String
 import kotlin.collections.List
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.Status
 
-public class TimelinesApiV1TimelinesDirectGetClient(
-  private val configuration: ClientConfiguration = defaultClientConfiguration,
-) {
+public interface TimelinesApiV1TimelinesDirectGetClient {
   /**
    * View direct timeline
    */
@@ -24,7 +25,83 @@ public class TimelinesApiV1TimelinesDirectGetClient(
     maxId: String? = null,
     minId: String? = null,
     sinceId: String? = null,
-  ): GetTimelineDirectResponse {
+  ): GetTimelineDirectResponse
+
+  @Serializable
+  public sealed class GetTimelineDirectResponse {
+    public abstract val headers: Headers
+  }
+
+  @Serializable
+  public data class GetTimelineDirectResponseSuccess(
+    public val body: List<Status>,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetTimelineDirectResponse() {
+    /**
+     * Pagination links for browsing older or newer results. Format: Link: <https://mastodon.example/api/v1/endpoint?max_id=7163058>; rel="next", <https://mastodon.example/api/v1/endpoint?min_id=7275607>; rel="prev". See [RFC 8288](https://www.rfc-editor.org/rfc/rfc8288) for more information.
+     */
+    public val link: String?
+      get() = headers["Link"]
+
+    /**
+     * Number of requests permitted per time period
+     */
+    public val xRateLimitLimit: Int?
+      get() = headers["X-RateLimit-Limit"]?.toIntOrNull()
+
+    /**
+     * Number of requests you can still make
+     */
+    public val xRateLimitRemaining: Int?
+      get() = headers["X-RateLimit-Remaining"]?.toIntOrNull()
+
+    /**
+     * Timestamp when your rate limit will reset
+     */
+    public val xRateLimitReset: String?
+      get() = headers["X-RateLimit-Reset"]
+  }
+
+  @Serializable
+  public data class GetTimelineDirectResponseFailure401(
+    public val body: Error,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetTimelineDirectResponse()
+
+  @Serializable
+  public data class GetTimelineDirectResponseFailure410(
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetTimelineDirectResponse()
+
+  @Serializable
+  public data class GetTimelineDirectResponseFailure(
+    public val body: ValidationError,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetTimelineDirectResponse()
+
+  @Serializable
+  public data class GetTimelineDirectResponseUnknownFailure(
+    public val statusCode: Int,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetTimelineDirectResponse()
+}
+
+public fun TimelinesApiV1TimelinesDirectGetClient(configuration: ClientConfiguration = defaultClientConfiguration): TimelinesApiV1TimelinesDirectGetClient = DefaultTimelinesApiV1TimelinesDirectGetClient(configuration)
+
+public class DefaultTimelinesApiV1TimelinesDirectGetClient(
+  private val configuration: ClientConfiguration = defaultClientConfiguration,
+) : TimelinesApiV1TimelinesDirectGetClient {
+  override suspend fun getTimelineDirect(
+    limit: Long?,
+    maxId: String?,
+    minId: String?,
+    sinceId: String?,
+  ): TimelinesApiV1TimelinesDirectGetClient.GetTimelineDirectResponse {
     try {
       val response = configuration.client.`get`("api/v1/timelines/direct") {
         url {
@@ -43,42 +120,19 @@ public class TimelinesApiV1TimelinesDirectGetClient(
         }
       }
       return when (response.status.value) {
-        200 -> GetTimelineDirectResponseSuccess(response.body<List<Status>>())
-        401, 404, 429, 503 -> GetTimelineDirectResponseFailure401(response.body<Error>())
-        410 -> GetTimelineDirectResponseFailure410
-        422 -> GetTimelineDirectResponseFailure(response.body<ValidationError>())
-        else -> GetTimelineDirectResponseUnknownFailure(response.status.value)
+        200 -> TimelinesApiV1TimelinesDirectGetClient.GetTimelineDirectResponseSuccess(response.body<List<Status>>(), response.headers)
+        401, 404, 429, 503 -> TimelinesApiV1TimelinesDirectGetClient.GetTimelineDirectResponseFailure401(response.body<Error>(), response.headers)
+        410 -> TimelinesApiV1TimelinesDirectGetClient.GetTimelineDirectResponseFailure410(response.headers)
+        422 -> TimelinesApiV1TimelinesDirectGetClient.GetTimelineDirectResponseFailure(response.body<ValidationError>(), response.headers)
+        else -> TimelinesApiV1TimelinesDirectGetClient.GetTimelineDirectResponseUnknownFailure(response.status.value, response.headers)
       }
+    }
+    catch(e: CancellationException) {
+      throw e
     }
     catch(e: Exception) {
       configuration.exceptionLogger(e)
-      return GetTimelineDirectResponseUnknownFailure(500)
+      return TimelinesApiV1TimelinesDirectGetClient.GetTimelineDirectResponseUnknownFailure(500)
     }
   }
-
-  @Serializable
-  public sealed class GetTimelineDirectResponse
-
-  @Serializable
-  public data class GetTimelineDirectResponseSuccess(
-    public val body: List<Status>,
-  ) : GetTimelineDirectResponse()
-
-  @Serializable
-  public data class GetTimelineDirectResponseFailure401(
-    public val body: Error,
-  ) : GetTimelineDirectResponse()
-
-  @Serializable
-  public object GetTimelineDirectResponseFailure410 : GetTimelineDirectResponse()
-
-  @Serializable
-  public data class GetTimelineDirectResponseFailure(
-    public val body: ValidationError,
-  ) : GetTimelineDirectResponse()
-
-  @Serializable
-  public data class GetTimelineDirectResponseUnknownFailure(
-    public val statusCode: Int,
-  ) : GetTimelineDirectResponse()
 }

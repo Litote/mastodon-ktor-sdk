@@ -2,20 +2,21 @@ package org.litote.mastodon.ktor.sdk.blocksApiV1BlocksGet.client
 
 import io.ktor.client.call.body
 import io.ktor.client.request.`get`
+import io.ktor.http.Headers
 import kotlin.Int
 import kotlin.Long
 import kotlin.String
 import kotlin.collections.List
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersgetB7d593a6.model.Account
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 
-public class BlocksApiV1BlocksGetClient(
-  private val configuration: ClientConfiguration = defaultClientConfiguration,
-) {
+public interface BlocksApiV1BlocksGetClient {
   /**
    * View blocked users
    */
@@ -24,7 +25,83 @@ public class BlocksApiV1BlocksGetClient(
     maxId: String? = null,
     minId: String? = null,
     sinceId: String? = null,
-  ): GetBlocksResponse {
+  ): GetBlocksResponse
+
+  @Serializable
+  public sealed class GetBlocksResponse {
+    public abstract val headers: Headers
+  }
+
+  @Serializable
+  public data class GetBlocksResponseSuccess(
+    public val body: List<Account>,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetBlocksResponse() {
+    /**
+     * Pagination links for browsing older or newer results. Format: Link: <https://mastodon.example/api/v1/endpoint?max_id=7163058>; rel="next", <https://mastodon.example/api/v1/endpoint?min_id=7275607>; rel="prev". See [RFC 8288](https://www.rfc-editor.org/rfc/rfc8288) for more information.
+     */
+    public val link: String?
+      get() = headers["Link"]
+
+    /**
+     * Number of requests permitted per time period
+     */
+    public val xRateLimitLimit: Int?
+      get() = headers["X-RateLimit-Limit"]?.toIntOrNull()
+
+    /**
+     * Number of requests you can still make
+     */
+    public val xRateLimitRemaining: Int?
+      get() = headers["X-RateLimit-Remaining"]?.toIntOrNull()
+
+    /**
+     * Timestamp when your rate limit will reset
+     */
+    public val xRateLimitReset: String?
+      get() = headers["X-RateLimit-Reset"]
+  }
+
+  @Serializable
+  public data class GetBlocksResponseFailure401(
+    public val body: Error,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetBlocksResponse()
+
+  @Serializable
+  public data class GetBlocksResponseFailure410(
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetBlocksResponse()
+
+  @Serializable
+  public data class GetBlocksResponseFailure(
+    public val body: ValidationError,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetBlocksResponse()
+
+  @Serializable
+  public data class GetBlocksResponseUnknownFailure(
+    public val statusCode: Int,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetBlocksResponse()
+}
+
+public fun BlocksApiV1BlocksGetClient(configuration: ClientConfiguration = defaultClientConfiguration): BlocksApiV1BlocksGetClient = DefaultBlocksApiV1BlocksGetClient(configuration)
+
+public class DefaultBlocksApiV1BlocksGetClient(
+  private val configuration: ClientConfiguration = defaultClientConfiguration,
+) : BlocksApiV1BlocksGetClient {
+  override suspend fun getBlocks(
+    limit: Long?,
+    maxId: String?,
+    minId: String?,
+    sinceId: String?,
+  ): BlocksApiV1BlocksGetClient.GetBlocksResponse {
     try {
       val response = configuration.client.`get`("api/v1/blocks") {
         url {
@@ -43,42 +120,19 @@ public class BlocksApiV1BlocksGetClient(
         }
       }
       return when (response.status.value) {
-        200 -> GetBlocksResponseSuccess(response.body<List<Account>>())
-        401, 404, 429, 503 -> GetBlocksResponseFailure401(response.body<Error>())
-        410 -> GetBlocksResponseFailure410
-        422 -> GetBlocksResponseFailure(response.body<ValidationError>())
-        else -> GetBlocksResponseUnknownFailure(response.status.value)
+        200 -> BlocksApiV1BlocksGetClient.GetBlocksResponseSuccess(response.body<List<Account>>(), response.headers)
+        401, 404, 429, 503 -> BlocksApiV1BlocksGetClient.GetBlocksResponseFailure401(response.body<Error>(), response.headers)
+        410 -> BlocksApiV1BlocksGetClient.GetBlocksResponseFailure410(response.headers)
+        422 -> BlocksApiV1BlocksGetClient.GetBlocksResponseFailure(response.body<ValidationError>(), response.headers)
+        else -> BlocksApiV1BlocksGetClient.GetBlocksResponseUnknownFailure(response.status.value, response.headers)
       }
+    }
+    catch(e: CancellationException) {
+      throw e
     }
     catch(e: Exception) {
       configuration.exceptionLogger(e)
-      return GetBlocksResponseUnknownFailure(500)
+      return BlocksApiV1BlocksGetClient.GetBlocksResponseUnknownFailure(500)
     }
   }
-
-  @Serializable
-  public sealed class GetBlocksResponse
-
-  @Serializable
-  public data class GetBlocksResponseSuccess(
-    public val body: List<Account>,
-  ) : GetBlocksResponse()
-
-  @Serializable
-  public data class GetBlocksResponseFailure401(
-    public val body: Error,
-  ) : GetBlocksResponse()
-
-  @Serializable
-  public object GetBlocksResponseFailure410 : GetBlocksResponse()
-
-  @Serializable
-  public data class GetBlocksResponseFailure(
-    public val body: ValidationError,
-  ) : GetBlocksResponse()
-
-  @Serializable
-  public data class GetBlocksResponseUnknownFailure(
-    public val statusCode: Int,
-  ) : GetBlocksResponse()
 }
