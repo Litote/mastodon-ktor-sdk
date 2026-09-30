@@ -230,7 +230,7 @@ class MastodonMcpServerTest {
 
             val result =
                 handleSendTextStatus(args) { _ ->
-                    SendResult.UploadFailure(fakeForm, MediaApiV2MediaPostClient.CreateMediaV2ResponseFailure)
+                    SendResult.UploadFailure(fakeForm, MediaApiV2MediaPostClient.CreateMediaV2ResponseFailure())
                 }
 
             assertTrue(result.isError ?: false)

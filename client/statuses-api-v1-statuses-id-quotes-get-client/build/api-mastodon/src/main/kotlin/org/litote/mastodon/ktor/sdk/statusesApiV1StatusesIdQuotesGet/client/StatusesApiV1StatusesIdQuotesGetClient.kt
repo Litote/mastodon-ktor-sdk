@@ -2,21 +2,22 @@ package org.litote.mastodon.ktor.sdk.statusesApiV1StatusesIdQuotesGet.client
 
 import io.ktor.client.call.body
 import io.ktor.client.request.`get`
+import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.Long
 import kotlin.String
 import kotlin.collections.List
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.Status
 
-public class StatusesApiV1StatusesIdQuotesGetClient(
-  private val configuration: ClientConfiguration = defaultClientConfiguration,
-) {
+public interface StatusesApiV1StatusesIdQuotesGetClient {
   /**
    * See quotes of a status
    */
@@ -25,7 +26,83 @@ public class StatusesApiV1StatusesIdQuotesGetClient(
     limit: Long? = 20,
     maxId: String? = null,
     sinceId: String? = null,
-  ): GetStatusQuotesResponse {
+  ): GetStatusQuotesResponse
+
+  @Serializable
+  public sealed class GetStatusQuotesResponse {
+    public abstract val headers: Headers
+  }
+
+  @Serializable
+  public data class GetStatusQuotesResponseSuccess(
+    public val body: List<Status>,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetStatusQuotesResponse() {
+    /**
+     * Pagination links for browsing older or newer results. Format: Link: <https://mastodon.example/api/v1/endpoint?max_id=7163058>; rel="next", <https://mastodon.example/api/v1/endpoint?min_id=7275607>; rel="prev". See [RFC 8288](https://www.rfc-editor.org/rfc/rfc8288) for more information.
+     */
+    public val link: String?
+      get() = headers["Link"]
+
+    /**
+     * Number of requests permitted per time period
+     */
+    public val xRateLimitLimit: Int?
+      get() = headers["X-RateLimit-Limit"]?.toIntOrNull()
+
+    /**
+     * Number of requests you can still make
+     */
+    public val xRateLimitRemaining: Int?
+      get() = headers["X-RateLimit-Remaining"]?.toIntOrNull()
+
+    /**
+     * Timestamp when your rate limit will reset
+     */
+    public val xRateLimitReset: String?
+      get() = headers["X-RateLimit-Reset"]
+  }
+
+  @Serializable
+  public data class GetStatusQuotesResponseFailure401(
+    public val body: Error,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetStatusQuotesResponse()
+
+  @Serializable
+  public data class GetStatusQuotesResponseFailure410(
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetStatusQuotesResponse()
+
+  @Serializable
+  public data class GetStatusQuotesResponseFailure(
+    public val body: ValidationError,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetStatusQuotesResponse()
+
+  @Serializable
+  public data class GetStatusQuotesResponseUnknownFailure(
+    public val statusCode: Int,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetStatusQuotesResponse()
+}
+
+public fun StatusesApiV1StatusesIdQuotesGetClient(configuration: ClientConfiguration = defaultClientConfiguration): StatusesApiV1StatusesIdQuotesGetClient = DefaultStatusesApiV1StatusesIdQuotesGetClient(configuration)
+
+public class DefaultStatusesApiV1StatusesIdQuotesGetClient(
+  private val configuration: ClientConfiguration = defaultClientConfiguration,
+) : StatusesApiV1StatusesIdQuotesGetClient {
+  override suspend fun getStatusQuotes(
+    id: String,
+    limit: Long?,
+    maxId: String?,
+    sinceId: String?,
+  ): StatusesApiV1StatusesIdQuotesGetClient.GetStatusQuotesResponse {
     try {
       val response = configuration.client.`get`("api/v1/statuses/{id}/quotes".replace("/{id}", "/${id.encodeURLPathPart()}")) {
         url {
@@ -41,42 +118,19 @@ public class StatusesApiV1StatusesIdQuotesGetClient(
         }
       }
       return when (response.status.value) {
-        200 -> GetStatusQuotesResponseSuccess(response.body<List<Status>>())
-        401, 404, 429, 503 -> GetStatusQuotesResponseFailure401(response.body<Error>())
-        410 -> GetStatusQuotesResponseFailure410
-        422 -> GetStatusQuotesResponseFailure(response.body<ValidationError>())
-        else -> GetStatusQuotesResponseUnknownFailure(response.status.value)
+        200 -> StatusesApiV1StatusesIdQuotesGetClient.GetStatusQuotesResponseSuccess(response.body<List<Status>>(), response.headers)
+        401, 404, 429, 503 -> StatusesApiV1StatusesIdQuotesGetClient.GetStatusQuotesResponseFailure401(response.body<Error>(), response.headers)
+        410 -> StatusesApiV1StatusesIdQuotesGetClient.GetStatusQuotesResponseFailure410(response.headers)
+        422 -> StatusesApiV1StatusesIdQuotesGetClient.GetStatusQuotesResponseFailure(response.body<ValidationError>(), response.headers)
+        else -> StatusesApiV1StatusesIdQuotesGetClient.GetStatusQuotesResponseUnknownFailure(response.status.value, response.headers)
       }
+    }
+    catch(e: CancellationException) {
+      throw e
     }
     catch(e: Exception) {
       configuration.exceptionLogger(e)
-      return GetStatusQuotesResponseUnknownFailure(500)
+      return StatusesApiV1StatusesIdQuotesGetClient.GetStatusQuotesResponseUnknownFailure(500)
     }
   }
-
-  @Serializable
-  public sealed class GetStatusQuotesResponse
-
-  @Serializable
-  public data class GetStatusQuotesResponseSuccess(
-    public val body: List<Status>,
-  ) : GetStatusQuotesResponse()
-
-  @Serializable
-  public data class GetStatusQuotesResponseFailure401(
-    public val body: Error,
-  ) : GetStatusQuotesResponse()
-
-  @Serializable
-  public object GetStatusQuotesResponseFailure410 : GetStatusQuotesResponse()
-
-  @Serializable
-  public data class GetStatusQuotesResponseFailure(
-    public val body: ValidationError,
-  ) : GetStatusQuotesResponse()
-
-  @Serializable
-  public data class GetStatusQuotesResponseUnknownFailure(
-    public val statusCode: Int,
-  ) : GetStatusQuotesResponse()
 }

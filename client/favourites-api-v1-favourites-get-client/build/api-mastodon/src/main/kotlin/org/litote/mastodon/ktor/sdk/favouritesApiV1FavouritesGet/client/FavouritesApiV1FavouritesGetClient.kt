@@ -2,20 +2,21 @@ package org.litote.mastodon.ktor.sdk.favouritesApiV1FavouritesGet.client
 
 import io.ktor.client.call.body
 import io.ktor.client.request.`get`
+import io.ktor.http.Headers
 import kotlin.Int
 import kotlin.Long
 import kotlin.String
 import kotlin.collections.List
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.Status
 
-public class FavouritesApiV1FavouritesGetClient(
-  private val configuration: ClientConfiguration = defaultClientConfiguration,
-) {
+public interface FavouritesApiV1FavouritesGetClient {
   /**
    * View favourited statuses
    */
@@ -24,7 +25,83 @@ public class FavouritesApiV1FavouritesGetClient(
     maxId: String? = null,
     minId: String? = null,
     sinceId: String? = null,
-  ): GetFavouritesResponse {
+  ): GetFavouritesResponse
+
+  @Serializable
+  public sealed class GetFavouritesResponse {
+    public abstract val headers: Headers
+  }
+
+  @Serializable
+  public data class GetFavouritesResponseSuccess(
+    public val body: List<Status>,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetFavouritesResponse() {
+    /**
+     * Pagination links for browsing older or newer results. Format: Link: <https://mastodon.example/api/v1/endpoint?max_id=7163058>; rel="next", <https://mastodon.example/api/v1/endpoint?min_id=7275607>; rel="prev". See [RFC 8288](https://www.rfc-editor.org/rfc/rfc8288) for more information.
+     */
+    public val link: String?
+      get() = headers["Link"]
+
+    /**
+     * Number of requests permitted per time period
+     */
+    public val xRateLimitLimit: Int?
+      get() = headers["X-RateLimit-Limit"]?.toIntOrNull()
+
+    /**
+     * Number of requests you can still make
+     */
+    public val xRateLimitRemaining: Int?
+      get() = headers["X-RateLimit-Remaining"]?.toIntOrNull()
+
+    /**
+     * Timestamp when your rate limit will reset
+     */
+    public val xRateLimitReset: String?
+      get() = headers["X-RateLimit-Reset"]
+  }
+
+  @Serializable
+  public data class GetFavouritesResponseFailure401(
+    public val body: Error,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetFavouritesResponse()
+
+  @Serializable
+  public data class GetFavouritesResponseFailure410(
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetFavouritesResponse()
+
+  @Serializable
+  public data class GetFavouritesResponseFailure(
+    public val body: ValidationError,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetFavouritesResponse()
+
+  @Serializable
+  public data class GetFavouritesResponseUnknownFailure(
+    public val statusCode: Int,
+    @Transient
+    override val headers: Headers = Headers.Empty,
+  ) : GetFavouritesResponse()
+}
+
+public fun FavouritesApiV1FavouritesGetClient(configuration: ClientConfiguration = defaultClientConfiguration): FavouritesApiV1FavouritesGetClient = DefaultFavouritesApiV1FavouritesGetClient(configuration)
+
+public class DefaultFavouritesApiV1FavouritesGetClient(
+  private val configuration: ClientConfiguration = defaultClientConfiguration,
+) : FavouritesApiV1FavouritesGetClient {
+  override suspend fun getFavourites(
+    limit: Long?,
+    maxId: String?,
+    minId: String?,
+    sinceId: String?,
+  ): FavouritesApiV1FavouritesGetClient.GetFavouritesResponse {
     try {
       val response = configuration.client.`get`("api/v1/favourites") {
         url {
@@ -43,42 +120,19 @@ public class FavouritesApiV1FavouritesGetClient(
         }
       }
       return when (response.status.value) {
-        200 -> GetFavouritesResponseSuccess(response.body<List<Status>>())
-        401, 404, 429, 503 -> GetFavouritesResponseFailure401(response.body<Error>())
-        410 -> GetFavouritesResponseFailure410
-        422 -> GetFavouritesResponseFailure(response.body<ValidationError>())
-        else -> GetFavouritesResponseUnknownFailure(response.status.value)
+        200 -> FavouritesApiV1FavouritesGetClient.GetFavouritesResponseSuccess(response.body<List<Status>>(), response.headers)
+        401, 404, 429, 503 -> FavouritesApiV1FavouritesGetClient.GetFavouritesResponseFailure401(response.body<Error>(), response.headers)
+        410 -> FavouritesApiV1FavouritesGetClient.GetFavouritesResponseFailure410(response.headers)
+        422 -> FavouritesApiV1FavouritesGetClient.GetFavouritesResponseFailure(response.body<ValidationError>(), response.headers)
+        else -> FavouritesApiV1FavouritesGetClient.GetFavouritesResponseUnknownFailure(response.status.value, response.headers)
       }
+    }
+    catch(e: CancellationException) {
+      throw e
     }
     catch(e: Exception) {
       configuration.exceptionLogger(e)
-      return GetFavouritesResponseUnknownFailure(500)
+      return FavouritesApiV1FavouritesGetClient.GetFavouritesResponseUnknownFailure(500)
     }
   }
-
-  @Serializable
-  public sealed class GetFavouritesResponse
-
-  @Serializable
-  public data class GetFavouritesResponseSuccess(
-    public val body: List<Status>,
-  ) : GetFavouritesResponse()
-
-  @Serializable
-  public data class GetFavouritesResponseFailure401(
-    public val body: Error,
-  ) : GetFavouritesResponse()
-
-  @Serializable
-  public object GetFavouritesResponseFailure410 : GetFavouritesResponse()
-
-  @Serializable
-  public data class GetFavouritesResponseFailure(
-    public val body: ValidationError,
-  ) : GetFavouritesResponse()
-
-  @Serializable
-  public data class GetFavouritesResponseUnknownFailure(
-    public val statusCode: Int,
-  ) : GetFavouritesResponse()
 }
