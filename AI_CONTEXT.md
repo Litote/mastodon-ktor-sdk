@@ -60,10 +60,12 @@ Provides `SendSdk` — high-level coroutine-based API:
 - `sendText(TextStatus)` — posts a plain text status
 - `sendMedia(MediaStatus, List<CreateMediaV2Form>)` — uploads attachments then posts a media status
 
-Returns a sealed `SendResult` (`Success`, `PostFailure`, `UploadFailure`, `Simulated`).
-`PostFailure` / `UploadFailure` expose `errorMessage` (server `error` + `error_description`, or `HTTP <code>`); callers (MCP, CLI, Gradle plugin) render it instead of generic messages.
+Returns a sealed `SendResult` (`Success`, `PostFailure`, `UploadFailure`, `MediaProcessingFailure`, `Simulated`).
+`PostFailure` / `UploadFailure` / `MediaProcessingFailure` expose `errorMessage` (server `error` + `error_description`, or `HTTP <code>`); callers (MCP, CLI, Gradle plugin) render it instead of generic messages.
 
 `SdkConfiguration.visibility` / `language` are applied by `SendSdk` itself (`defaultVisibility` / `defaultLanguage` constructor params) to statuses that do not set their own value — callers must not copy them into the status. Unknown visibility → `null` (server account default).
+
+`sendMedia` waits for asynchronous media processing: when `POST /api/v2/media` returns an attachment with `url == null`, it polls `GET /api/v1/media/{id}` (`media-api-v1-media-id-get-client`) every `mediaPollInterval` (default 1s) until 200, within `mediaProcessingTimeout` (default 60s) using `withTimeoutOrNull`. Any other response or timeout → `MediaProcessingFailure(mediaId, response?)` (`null` = timeout) and the status is not posted. Tests driving this use a `MockEngine` whose `dispatcher` is a `StandardTestDispatcher(testScheduler)` so delays and timeouts run in virtual time.
 
 ### `cli`
 

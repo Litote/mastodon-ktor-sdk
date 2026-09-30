@@ -344,4 +344,16 @@ class MastodonMcpServerTest {
             val text = result.content.filterIsInstance<TextContent>().joinToString { it.text }
             assertEquals("Failed to upload media: HTTP 410", text)
         }
+
+    @Test
+    fun `GIVEN media processing failure WHEN handleSendTextStatus THEN returns isError with message`() =
+        runTest {
+            val args = mapOf("text" to JsonPrimitive("Hello!"))
+
+            val result = handleSendTextStatus(args) { _ -> SendResult.MediaProcessingFailure("media123", null) }
+
+            assertTrue(result.isError ?: false)
+            val text = result.content.filterIsInstance<TextContent>().joinToString { it.text }
+            assertEquals("Media media123 was not processed within the timeout", text)
+        }
 }

@@ -146,5 +146,9 @@ internal suspend fun handleSendTextStatus(
         is SendResult.UploadFailure -> {
             CallToolResult(content = listOf(TextContent(result.errorMessage)), isError = true)
         }
+
+        is SendResult.MediaProcessingFailure -> {
+            CallToolResult(content = listOf(TextContent(result.errorMessage)), isError = true)
+        }
     }
 }

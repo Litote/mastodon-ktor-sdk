@@ -54,6 +54,7 @@ when (result) {
     is SendResult.Success -> println("Posted: ${result.status.url}")
     is SendResult.PostFailure -> println(result.errorMessage) // e.g. "Failed to post status: Validation failed: ..."
     is SendResult.UploadFailure -> println(result.errorMessage)
+    is SendResult.MediaProcessingFailure -> println(result.errorMessage)
     is SendResult.Simulated -> println("Simulated: ${result.info}")
 }
 ```
@@ -84,9 +85,22 @@ val result = sdk.sendMedia(
 when (result) {
     is SendResult.Success -> println("Posted: ${result.status.url}")
     is SendResult.UploadFailure -> println(result.errorMessage) // e.g. "Failed to upload media: HTTP 410"
+    is SendResult.MediaProcessingFailure -> println(result.errorMessage) // e.g. "Media 123 was not processed within the timeout"
     is SendResult.PostFailure -> println(result.errorMessage)
     is SendResult.Simulated -> println("Simulated: ${result.info}")
 }
 ```
 
 Up to 4 attachments are supported. Supported formats: `jpg`, `jpeg`, `png`, `gif`, `webp`, `mp4`, `mov`.
+
+Large files (typically videos) are processed asynchronously by Mastodon. `sendMedia` waits until every
+attachment is processed before posting the status, polling every second for up to 60 seconds. Both values
+can be tuned with the `mediaPollInterval` and `mediaProcessingTimeout` constructor parameters:
+
+```kotlin
+val sdk = SendSdk(
+    clientConfig = config.toClientConfiguration(),
+    mediaPollInterval = 2.seconds,
+    mediaProcessingTimeout = 5.minutes,
+)
+```

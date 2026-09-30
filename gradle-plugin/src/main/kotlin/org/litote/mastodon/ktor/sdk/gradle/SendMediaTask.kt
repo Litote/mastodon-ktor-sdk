@@ -147,6 +147,10 @@ abstract class SendMediaTask : DefaultTask() {
             is SendResult.UploadFailure -> {
                 error(result.errorMessage)
             }
+
+            is SendResult.MediaProcessingFailure -> {
+                error(result.errorMessage)
+            }
         }
     }
 }

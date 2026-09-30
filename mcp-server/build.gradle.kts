@@ -56,6 +56,7 @@ kotlin {
                 implementation(libs.ktor.client.mock)
                 implementation(libs.coroutines.test)
                 implementation(project(":client:media-api-v2-media-post-client"))
+                implementation(project(":client:media-api-v1-media-id-get-client"))
             }
         }
     }

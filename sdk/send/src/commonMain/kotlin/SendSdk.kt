@@ -1,8 +1,17 @@
 package org.litote.mastodon.ktor.sdk.send
 
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.configuration.SdkConfiguration
 import org.litote.mastodon.ktor.sdk.configuration.toClientConfiguration
+import org.litote.mastodon.ktor.sdk.mediaApiV1MediaIdGet.client.MediaApiV1MediaIdGetClient
+import org.litote.mastodon.ktor.sdk.mediaApiV1MediaIdGet.client.MediaApiV1MediaIdGetClient.GetMediaResponse
+import org.litote.mastodon.ktor.sdk.mediaApiV1MediaIdGet.client.MediaApiV1MediaIdGetClient.GetMediaResponseFailure
+import org.litote.mastodon.ktor.sdk.mediaApiV1MediaIdGet.client.MediaApiV1MediaIdGetClient.GetMediaResponseFailure401
+import org.litote.mastodon.ktor.sdk.mediaApiV1MediaIdGet.client.MediaApiV1MediaIdGetClient.GetMediaResponseSuccess
+import org.litote.mastodon.ktor.sdk.mediaApiV1MediaIdGet.client.MediaApiV1MediaIdGetClient.GetMediaResponseSuccess200
+import org.litote.mastodon.ktor.sdk.mediaApiV1MediaIdGet.client.MediaApiV1MediaIdGetClient.GetMediaResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient
 import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2Form
 import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2Response
@@ -20,6 +29,8 @@ import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApi
 import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApiV1StatusesPostClient.CreateStatusResponseFailure401
 import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApiV1StatusesPostClient.CreateStatusResponseSuccess
 import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApiV1StatusesPostClient.CreateStatusResponseUnknownFailure
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.CreateStatusResponse as StatusBody
 
 /**
@@ -92,6 +103,35 @@ public sealed class SendResult {
     }
 
     /**
+     * An uploaded media attachment was not processed by the server, so the status was not posted.
+     *
+     * @property mediaId ID of the media attachment that could not be processed.
+     * @property response The last response received from the media endpoint, or `null` if processing
+     *   did not finish before the timeout.
+     */
+    public data class MediaProcessingFailure(
+        val mediaId: String,
+        val response: GetMediaResponse?,
+    ) : SendResult() {
+        /** Human-readable description of the failure, including the server error message when available. */
+        public val errorMessage: String
+            get() =
+                when (response) {
+                    null -> "Media $mediaId was not processed within the timeout"
+
+                    is GetMediaResponseFailure401 -> "Media $mediaId processing failed: ${response.body.describe()}"
+
+                    is GetMediaResponseFailure -> "Media $mediaId processing failed: HTTP 410"
+
+                    is GetMediaResponseUnknownFailure -> "Media $mediaId processing failed: HTTP ${response.statusCode}"
+
+                    is GetMediaResponseSuccess,
+                    is GetMediaResponseSuccess200,
+                    -> "Media $mediaId processing failed: unexpected response"
+                }
+    }
+
+    /**
      * The status post request failed after all attachments were uploaded successfully.
      *
      * @property response The raw API response received from the statuses endpoint.
@@ -146,12 +186,16 @@ internal fun String.toStatusVisibility(): StatusVisibilityEnum? =
  * @param simulate When `true`, no request is sent and [SendResult.Simulated] is returned.
  * @param defaultVisibility Visibility applied to statuses that do not set their own.
  * @param defaultLanguage Language applied to statuses that do not set their own.
+ * @param mediaPollInterval Delay between two checks of an uploaded media that is still being processed.
+ * @param mediaProcessingTimeout Maximum time to wait for an uploaded media to be processed.
  */
 public class SendSdk public constructor(
     private val clientConfig: ClientConfiguration,
     private val simulate: Boolean = false,
     private val defaultVisibility: StatusVisibilityEnum? = null,
     private val defaultLanguage: String? = null,
+    private val mediaPollInterval: Duration = 1.seconds,
+    private val mediaProcessingTimeout: Duration = 60.seconds,
 ) {
     /**
      * Creates a [SendSdk] configured from the given [SdkConfiguration].
@@ -208,11 +252,15 @@ public class SendSdk public constructor(
      *
      * Attachments are uploaded sequentially; the first upload failure immediately returns
      * [SendResult.UploadFailure] without uploading or posting the remaining items.
+     * When the server accepts an attachment for asynchronous processing (no `url` yet), the SDK polls
+     * `GET /api/v1/media/{id}` every `mediaPollInterval` until it is ready; if it fails or is not ready within
+     * `mediaProcessingTimeout`, [SendResult.MediaProcessingFailure] is returned and the status is not posted.
      *
      * @param status The status to post. [MediaStatus.mediaIds] is populated automatically and may be empty.
      * @param attachments Between 1 and 4 (inclusive) multipart forms describing the files to upload.
      * @return [SendResult.Success] on success, [SendResult.UploadFailure] if an attachment could not be
-     *   uploaded, or [SendResult.PostFailure] if the server rejected the status request.
+     *   uploaded, [SendResult.MediaProcessingFailure] if an attachment could not be processed, or
+     *   [SendResult.PostFailure] if the server rejected the status request.
      * @throws IllegalArgumentException if [attachments] is empty or contains more than 4 items.
      */
     public suspend fun sendMedia(
@@ -251,7 +299,11 @@ public class SendSdk public constructor(
         for (form in attachments) {
             when (val response = mediaClient.createMediaV2(form)) {
                 is CreateMediaV2ResponseSuccess -> {
-                    mediaIds.add(response.body.id)
+                    val media = response.body
+                    if (media.url == null) {
+                        awaitMediaProcessed(media.id)?.let { return it }
+                    }
+                    mediaIds.add(media.id)
                 }
 
                 else -> {
@@ -269,6 +321,29 @@ public class SendSdk public constructor(
             else -> {
                 SendResult.PostFailure(response)
             }
+        }
+    }
+
+    /**
+     * Polls the media endpoint until [mediaId] is processed.
+     *
+     * @return `null` once the media is ready, or a [SendResult.MediaProcessingFailure] otherwise.
+     */
+    private suspend fun awaitMediaProcessed(mediaId: String): SendResult.MediaProcessingFailure? {
+        val client = MediaApiV1MediaIdGetClient(clientConfig)
+        val response = withTimeoutOrNull(mediaProcessingTimeout) { pollUntilProcessingEnds(client, mediaId) }
+        return if (response is GetMediaResponseSuccess200) null else SendResult.MediaProcessingFailure(mediaId, response)
+    }
+
+    /** Returns the first response that is not `206 Partial Content` (i.e. processing is no longer in progress). */
+    private suspend fun pollUntilProcessingEnds(
+        client: MediaApiV1MediaIdGetClient,
+        mediaId: String,
+    ): GetMediaResponse {
+        while (true) {
+            delay(mediaPollInterval)
+            val response = client.getMedia(mediaId)
+            if (response !is GetMediaResponseSuccess) return response
         }
     }
 }

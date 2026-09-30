@@ -54,6 +54,10 @@ internal class SendTextCommand : CoreSuspendingCliktCommand(name = "send-text") 
             is SendResult.UploadFailure -> {
                 throw CliktError(result.errorMessage)
             }
+
+            is SendResult.MediaProcessingFailure -> {
+                throw CliktError(result.errorMessage)
+            }
         }
     }
 }
