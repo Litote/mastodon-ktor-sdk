@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.3.0](https://github.com/Litote/mastodon-ktor-sdk/compare/v0.2.0...v0.3.0) (2026-09-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* SendResult has a new MediaProcessingFailure variant, so exhaustive `when` expressions on SendResult must handle it.
+
+### Features
+
+* add ReadSdk, status deletion and new MCP tools ([6fcdd31](https://github.com/Litote/mastodon-ktor-sdk/commit/6fcdd31827c54742bdf2123854aec3a5a621bb8c))
+* wait for asynchronous media processing before posting a status ([3e3fe20](https://github.com/Litote/mastodon-ktor-sdk/commit/3e3fe204d3b926188357ffe33e88efc361d96746))
+
+
+### Bug Fixes
+
+* apply SdkConfiguration defaults in SendSdk and expose actionable error messages ([a5b180d](https://github.com/Litote/mastodon-ktor-sdk/commit/a5b180df53ef6621944057e9eb411734b7baaffc))
+* cli build error - "ld.lld: error: duplicate symbol" ([ff3789a](https://github.com/Litote/mastodon-ktor-sdk/commit/ff3789a0a4ec8827187d6b4306451979fa73a6e9))
+
 ## [0.2.0](https://github.com/Litote/mastodon-ktor-sdk/compare/v0.1.0...v0.2.0) (2026-04-10)
 
 
