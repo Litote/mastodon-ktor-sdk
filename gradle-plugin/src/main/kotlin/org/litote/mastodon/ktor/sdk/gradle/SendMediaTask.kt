@@ -15,7 +15,6 @@ import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPo
 import org.litote.mastodon.ktor.sdk.model.MediaStatus
 import org.litote.mastodon.ktor.sdk.send.SendResult
 import org.litote.mastodon.ktor.sdk.send.SendSdk
-import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget4016b7e9.model.StatusVisibilityEnum
 import java.io.Serializable
 
 /**
@@ -104,10 +103,6 @@ abstract class SendMediaTask : DefaultTask() {
                 language = language.get(),
                 simulate = simulate.get(),
             )
-        val visibilityEnum =
-            StatusVisibilityEnum.entries.firstOrNull {
-                it.name == visibility.get().uppercase()
-            } ?: StatusVisibilityEnum.UNLISTED
         val allAttachments =
             attachments.get() +
                 attachOptions.get().map { option ->
@@ -126,15 +121,13 @@ abstract class SendMediaTask : DefaultTask() {
             MediaStatus(
                 status = text.get(),
                 mediaIds = emptyList(),
-                visibility = visibilityEnum,
-                language = language.get(),
             )
         when (val result = runBlocking { SendSdk(config).sendMedia(status, forms) }) {
             is SendResult.Simulated -> {
                 val info = result.info
                 logger.lifecycle("[simulate] server:     ${server.get()}")
-                logger.lifecycle("[simulate] visibility: ${info.visibility ?: visibilityEnum.name.lowercase()}")
-                logger.lifecycle("[simulate] language:   ${info.language ?: language.get()}")
+                logger.lifecycle("[simulate] visibility: ${info.visibility ?: "(server default)"}")
+                logger.lifecycle("[simulate] language:   ${info.language}")
                 logger.lifecycle("[simulate] text:       ${info.text}")
                 info.attachments.forEachIndexed { index, attachment ->
                     val filePath = allAttachments.getOrNull(index)?.filePath ?: "(unknown)"
@@ -148,11 +141,11 @@ abstract class SendMediaTask : DefaultTask() {
             }
 
             is SendResult.PostFailure -> {
-                error("Failed to post status: ${result.response}")
+                error(result.errorMessage)
             }
 
             is SendResult.UploadFailure -> {
-                error("Failed to upload media: ${result.form}")
+                error(result.errorMessage)
             }
         }
     }

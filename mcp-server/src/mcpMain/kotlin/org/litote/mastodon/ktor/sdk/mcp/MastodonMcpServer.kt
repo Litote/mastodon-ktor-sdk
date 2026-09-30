@@ -139,13 +139,12 @@ internal suspend fun handleSendTextStatus(
             CallToolResult(content = listOf(TextContent("Status posted: $url")), isError = false)
         }
 
-        is SendResult.PostFailure,
-        is SendResult.UploadFailure,
-        -> {
-            CallToolResult(
-                content = listOf(TextContent("Failed to post status")),
-                isError = true,
-            )
+        is SendResult.PostFailure -> {
+            CallToolResult(content = listOf(TextContent(result.errorMessage)), isError = true)
+        }
+
+        is SendResult.UploadFailure -> {
+            CallToolResult(content = listOf(TextContent(result.errorMessage)), isError = true)
         }
     }
 }

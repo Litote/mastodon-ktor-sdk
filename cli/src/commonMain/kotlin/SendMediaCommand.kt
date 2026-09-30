@@ -14,7 +14,6 @@ import org.litote.mastodon.ktor.sdk.configuration.SdkConfiguration
 import org.litote.mastodon.ktor.sdk.model.MediaStatus
 import org.litote.mastodon.ktor.sdk.send.SendResult
 import org.litote.mastodon.ktor.sdk.send.SendSdk
-import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget4016b7e9.model.StatusVisibilityEnum
 
 internal class SendMediaCommand : CoreSuspendingCliktCommand(name = "send-media") {
     private val server by option("--server", help = "Mastodon instance hostname (e.g. mastodon.social)").required()
@@ -49,9 +48,6 @@ internal class SendMediaCommand : CoreSuspendingCliktCommand(name = "send-media"
                     i += if (description != null) 2 else 1
                 }
             }
-        val visibilityEnum =
-            StatusVisibilityEnum.entries.firstOrNull { it.name == visibility.uppercase() }
-                ?: StatusVisibilityEnum.UNLISTED
         val forms = mediaAttachments.map { commandLine.toForm(it) }
         when (
             val result =
@@ -60,8 +56,6 @@ internal class SendMediaCommand : CoreSuspendingCliktCommand(name = "send-media"
                         MediaStatus(
                             status = statusText,
                             mediaIds = emptyList(),
-                            visibility = visibilityEnum,
-                            language = language,
                         ),
                     attachments = forms,
                 )
@@ -69,8 +63,8 @@ internal class SendMediaCommand : CoreSuspendingCliktCommand(name = "send-media"
             is SendResult.Simulated -> {
                 val info = result.info
                 echo("[simulate] server:     $server")
-                echo("[simulate] visibility: ${info.visibility ?: visibilityEnum.name.lowercase()}")
-                echo("[simulate] language:   ${info.language ?: language}")
+                echo("[simulate] visibility: ${info.visibility ?: "(server default)"}")
+                echo("[simulate] language:   ${info.language}")
                 echo("[simulate] text:       ${info.text}")
                 info.attachments.forEachIndexed { index, attachment ->
                     val filePath = mediaAttachments.getOrNull(index)?.filePath ?: "(unknown)"
@@ -84,11 +78,11 @@ internal class SendMediaCommand : CoreSuspendingCliktCommand(name = "send-media"
             }
 
             is SendResult.PostFailure -> {
-                throw CliktError("Failed to post status: ${result.response}")
+                throw CliktError(result.errorMessage)
             }
 
             is SendResult.UploadFailure -> {
-                throw CliktError("Failed to upload media: ${result.form}")
+                throw CliktError(result.errorMessage)
             }
         }
     }

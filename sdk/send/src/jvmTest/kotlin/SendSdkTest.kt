@@ -2,10 +2,14 @@ package org.litote.mastodon.ktor.sdk.send
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.MockRequestHandleScope
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.respondBadRequest
+import io.ktor.client.engine.mock.toByteArray
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.request.HttpRequestData
+import io.ktor.client.request.HttpResponseData
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -14,14 +18,18 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
+import org.litote.mastodon.ktor.sdk.configuration.SdkConfiguration
 import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2Form
 import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2FormFile
 import org.litote.mastodon.ktor.sdk.model.MediaStatus
 import org.litote.mastodon.ktor.sdk.model.TextStatus
+import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget4016b7e9.model.StatusVisibilityEnum
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class SendSdkTest {
@@ -150,6 +158,35 @@ class SendSdkTest {
             }
         return ClientConfiguration(baseUrl = "https://mastodon.social/", client = client, json = jsonConfig)
     }
+
+    private fun configWith(handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData): ClientConfiguration {
+        val client =
+            HttpClient(MockEngine(handler)) {
+                install(ContentNegotiation) { json(jsonConfig) }
+                defaultRequest { url("https://mastodon.social/") }
+            }
+        return ClientConfiguration(baseUrl = "https://mastodon.social/", client = client, json = jsonConfig)
+    }
+
+    private fun MockRequestHandleScope.respondJson(
+        content: String,
+        status: HttpStatusCode,
+    ): HttpResponseData = respond(content, status, headersOf(HttpHeaders.ContentType, "application/json"))
+
+    private fun failingConfig(
+        failPath: String,
+        status: HttpStatusCode,
+        body: String,
+    ): ClientConfiguration =
+        configWith { request ->
+            when (request.url.encodedPath) {
+                failPath -> respondJson(body, status)
+                "/api/v2/media" -> respondJson(mediaJson, HttpStatusCode.OK)
+                else -> respondJson(statusJson, HttpStatusCode.OK)
+            }
+        }
+
+    private fun simulateConfig(): ClientConfiguration = ClientConfiguration(baseUrl = "https://mastodon.social/", json = jsonConfig)
 
     private fun fakeAttachment() =
         CreateMediaV2Form(
@@ -314,5 +351,222 @@ class SendSdkTest {
             assertEquals("Look!", info.text)
             assertEquals(1, info.attachments.size)
             assertEquals(3, info.attachments[0].sizeBytes)
+        }
+
+    @Test
+    fun `GIVEN default visibility and status without visibility WHEN sendText in simulate THEN SimulateInfo uses default`() =
+        runTest {
+            val sdk = SendSdk(simulateConfig(), simulate = true, defaultVisibility = StatusVisibilityEnum.PRIVATE)
+
+            val result = sdk.sendText(TextStatus(status = "Hi"))
+
+            assertIs<SendResult.Simulated>(result)
+            assertEquals("private", result.info.visibility)
+        }
+
+    @Test
+    fun `GIVEN default language and status without language WHEN sendText in simulate THEN SimulateInfo uses default`() =
+        runTest {
+            val sdk = SendSdk(simulateConfig(), simulate = true, defaultLanguage = "fr")
+
+            val result = sdk.sendText(TextStatus(status = "Salut"))
+
+            assertIs<SendResult.Simulated>(result)
+            assertEquals("fr", result.info.language)
+        }
+
+    @Test
+    fun `GIVEN status with explicit visibility and language WHEN sendText in simulate THEN explicit values win`() =
+        runTest {
+            val sdk =
+                SendSdk(
+                    simulateConfig(),
+                    simulate = true,
+                    defaultVisibility = StatusVisibilityEnum.PRIVATE,
+                    defaultLanguage = "fr",
+                )
+
+            val result =
+                sdk.sendText(TextStatus(status = "Hi", visibility = StatusVisibilityEnum.PUBLIC, language = "de"))
+
+            assertIs<SendResult.Simulated>(result)
+            assertEquals("public", result.info.visibility)
+            assertEquals("de", result.info.language)
+        }
+
+    @Test
+    fun `GIVEN default media visibility and language WHEN sendMedia in simulate THEN SimulateInfo uses defaults`() =
+        runTest {
+            val sdk =
+                SendSdk(
+                    simulateConfig(),
+                    simulate = true,
+                    defaultVisibility = StatusVisibilityEnum.DIRECT,
+                    defaultLanguage = "es",
+                )
+
+            val result = sdk.sendMedia(MediaStatus(mediaIds = emptyList()), listOf(fakeAttachment()))
+
+            assertIs<SendResult.Simulated>(result)
+            assertEquals("direct", result.info.visibility)
+            assertEquals("es", result.info.language)
+        }
+
+    @Test
+    fun `GIVEN SdkConfiguration visibility and language WHEN sendText in simulate THEN SimulateInfo uses config values`() =
+        runTest {
+            val sdk =
+                SendSdk(
+                    SdkConfiguration(
+                        server = "mastodon.social",
+                        token = "token",
+                        visibility = "PRIVATE",
+                        language = "fr",
+                        simulate = true,
+                    ),
+                )
+
+            val result = sdk.sendText(TextStatus(status = "Hi"))
+
+            assertIs<SendResult.Simulated>(result)
+            assertEquals("private", result.info.visibility)
+            assertEquals("fr", result.info.language)
+        }
+
+    @Test
+    fun `GIVEN SdkConfiguration with unknown visibility WHEN sendText in simulate THEN visibility is left unset`() =
+        runTest {
+            val sdk =
+                SendSdk(
+                    SdkConfiguration(server = "mastodon.social", token = "token", visibility = "bogus", simulate = true),
+                )
+
+            val result = sdk.sendText(TextStatus(status = "Hi"))
+
+            assertIs<SendResult.Simulated>(result)
+            assertNull(result.info.visibility)
+        }
+
+    @Test
+    fun `GIVEN default visibility and language WHEN sendText and sendMedia THEN request bodies carry defaults`() =
+        runTest {
+            val statusBodies = mutableListOf<String>()
+            val config =
+                configWith { request ->
+                    if (request.url.encodedPath == "/api/v1/statuses") {
+                        statusBodies += request.body.toByteArray().decodeToString()
+                        respondJson(statusJson, HttpStatusCode.OK)
+                    } else {
+                        respondJson(mediaJson, HttpStatusCode.OK)
+                    }
+                }
+            val sdk = SendSdk(config, defaultVisibility = StatusVisibilityEnum.PRIVATE, defaultLanguage = "fr")
+
+            sdk.sendText(TextStatus(status = "Hi"))
+            sdk.sendMedia(MediaStatus(mediaIds = emptyList()), listOf(fakeAttachment()))
+
+            assertEquals(2, statusBodies.size)
+            statusBodies.forEach { body ->
+                assertContains(body, "\"visibility\":\"private\"")
+                assertContains(body, "\"language\":\"fr\"")
+            }
+        }
+
+    @Test
+    fun `GIVEN server returns 422 with error WHEN sendText THEN errorMessage contains server message`() =
+        runTest {
+            val sdk =
+                SendSdk(
+                    failingConfig(
+                        "/api/v1/statuses",
+                        HttpStatusCode.UnprocessableEntity,
+                        """{"error": "Validation failed: Text can't be blank"}""",
+                    ),
+                )
+
+            val result = sdk.sendText(TextStatus(status = "Hi"))
+
+            assertIs<SendResult.PostFailure>(result)
+            assertEquals("Failed to post status: Validation failed: Text can't be blank", result.errorMessage)
+        }
+
+    @Test
+    fun `GIVEN server returns error with description WHEN sendText THEN errorMessage contains description`() =
+        runTest {
+            val sdk =
+                SendSdk(
+                    failingConfig(
+                        "/api/v1/statuses",
+                        HttpStatusCode.Unauthorized,
+                        """{"error": "invalid_token", "error_description": "The access token is invalid"}""",
+                    ),
+                )
+
+            val result = sdk.sendText(TextStatus(status = "Hi"))
+
+            assertIs<SendResult.PostFailure>(result)
+            assertEquals("Failed to post status: invalid_token (The access token is invalid)", result.errorMessage)
+        }
+
+    @Test
+    fun `GIVEN server returns 500 without body WHEN sendText THEN errorMessage contains HTTP status`() =
+        runTest {
+            val sdk = SendSdk(failingConfig("/api/v1/statuses", HttpStatusCode.InternalServerError, ""))
+
+            val result = sdk.sendText(TextStatus(status = "Hi"))
+
+            assertIs<SendResult.PostFailure>(result)
+            assertEquals("Failed to post status: HTTP 500", result.errorMessage)
+        }
+
+    @Test
+    fun `GIVEN server returns 410 WHEN sendText THEN errorMessage contains HTTP 410`() =
+        runTest {
+            val sdk = SendSdk(failingConfig("/api/v1/statuses", HttpStatusCode.Gone, ""))
+
+            val result = sdk.sendText(TextStatus(status = "Hi"))
+
+            assertIs<SendResult.PostFailure>(result)
+            assertEquals("Failed to post status: HTTP 410", result.errorMessage)
+        }
+
+    @Test
+    fun `GIVEN media upload returns 422 with error WHEN sendMedia THEN errorMessage contains server message`() =
+        runTest {
+            val sdk =
+                SendSdk(
+                    failingConfig(
+                        "/api/v2/media",
+                        HttpStatusCode.UnprocessableEntity,
+                        """{"error": "File type not supported"}""",
+                    ),
+                )
+
+            val result = sdk.sendMedia(MediaStatus(mediaIds = emptyList()), listOf(fakeAttachment()))
+
+            assertIs<SendResult.UploadFailure>(result)
+            assertEquals("Failed to upload media: File type not supported", result.errorMessage)
+        }
+
+    @Test
+    fun `GIVEN media upload returns 410 WHEN sendMedia THEN errorMessage contains HTTP 410`() =
+        runTest {
+            val sdk = SendSdk(failingConfig("/api/v2/media", HttpStatusCode.Gone, ""))
+
+            val result = sdk.sendMedia(MediaStatus(mediaIds = emptyList()), listOf(fakeAttachment()))
+
+            assertIs<SendResult.UploadFailure>(result)
+            assertEquals("Failed to upload media: HTTP 410", result.errorMessage)
+        }
+
+    @Test
+    fun `GIVEN media upload returns unexpected status WHEN sendMedia THEN errorMessage contains HTTP status`() =
+        runTest {
+            val sdk = SendSdk(failingConfig("/api/v2/media", HttpStatusCode.BadGateway, ""))
+
+            val result = sdk.sendMedia(MediaStatus(mediaIds = emptyList()), listOf(fakeAttachment()))
+
+            assertIs<SendResult.UploadFailure>(result)
+            assertEquals("Failed to upload media: HTTP 502", result.errorMessage)
         }
 }

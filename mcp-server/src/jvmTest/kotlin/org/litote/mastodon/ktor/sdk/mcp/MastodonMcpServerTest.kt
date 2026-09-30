@@ -288,4 +288,60 @@ class MastodonMcpServerTest {
             assertContains(text, "[simulate] visibility: public")
             assertContains(text, "[simulate] language:   fr")
         }
+
+    @Test
+    fun `GIVEN config visibility and language WHEN handleSendTextStatus in simulate THEN output uses config values`() =
+        runTest {
+            val sdk =
+                SendSdk(
+                    SdkConfiguration(
+                        server = "fake.social",
+                        token = "fake-token",
+                        visibility = "private",
+                        language = "fr",
+                        simulate = true,
+                    ),
+                )
+            val args = mapOf("text" to JsonPrimitive("Hello!"))
+
+            val result = handleSendTextStatus(args, sdk::sendText)
+
+            assertFalse(result.isError ?: false)
+            val text = result.content.filterIsInstance<TextContent>().joinToString { it.text }
+            assertContains(text, "[simulate] visibility: private")
+            assertContains(text, "[simulate] language:   fr")
+        }
+
+    @Test
+    fun `GIVEN post fails WHEN handleSendTextStatus THEN error contains server message`() =
+        runTest {
+            val args = mapOf("text" to JsonPrimitive("Hello!"))
+
+            val result = handleSendTextStatus(args, failingSendSdk()::sendText)
+
+            val text = result.content.filterIsInstance<TextContent>().joinToString { it.text }
+            assertEquals("Failed to post status: Unauthorized", text)
+        }
+
+    @Test
+    fun `GIVEN upload fails WHEN handleSendTextStatus THEN error contains HTTP status`() =
+        runTest {
+            val args = mapOf("text" to JsonPrimitive("Hello!"))
+            val fakeForm =
+                MediaApiV2MediaPostClient.CreateMediaV2Form(
+                    file =
+                        MediaApiV2MediaPostClient.CreateMediaV2FormFile(
+                            bytes = ByteArray(0),
+                            contentType = ContentType.Image.JPEG,
+                        ),
+                )
+
+            val result =
+                handleSendTextStatus(args) { _ ->
+                    SendResult.UploadFailure(fakeForm, MediaApiV2MediaPostClient.CreateMediaV2ResponseFailure())
+                }
+
+            val text = result.content.filterIsInstance<TextContent>().joinToString { it.text }
+            assertEquals("Failed to upload media: HTTP 410", text)
+        }
 }

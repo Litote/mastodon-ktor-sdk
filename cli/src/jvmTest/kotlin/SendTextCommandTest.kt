@@ -60,6 +60,27 @@ class SendTextCommandTest {
         }
 
     @Test
+    fun `GIVEN --simulate with uppercase visibility WHEN send-text THEN logs normalized visibility`() =
+        runTest {
+            val output =
+                captureOutput {
+                    SendTextCommand().cliktRun(
+                        arrayOf(
+                            "--server",
+                            "mastodon.example.com",
+                            "--token",
+                            "fake-token",
+                            "--visibility",
+                            "PRIVATE",
+                            "--simulate",
+                            "Hi!",
+                        ),
+                    )
+                }
+            assertContains(output, "[simulate] visibility: private")
+        }
+
+    @Test
     fun `GIVEN --simulate with custom language WHEN send-text THEN logs correct language`() =
         runTest {
             val output =

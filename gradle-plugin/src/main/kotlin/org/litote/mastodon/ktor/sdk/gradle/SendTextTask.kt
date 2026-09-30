@@ -11,7 +11,6 @@ import org.litote.mastodon.ktor.sdk.configuration.SdkConfiguration
 import org.litote.mastodon.ktor.sdk.model.TextStatus
 import org.litote.mastodon.ktor.sdk.send.SendResult
 import org.litote.mastodon.ktor.sdk.send.SendSdk
-import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget4016b7e9.model.StatusVisibilityEnum
 
 /**
  * Gradle task that posts a plain-text status to a Mastodon instance.
@@ -57,22 +56,16 @@ abstract class SendTextTask : DefaultTask() {
                 language = language.get(),
                 simulate = simulate.get(),
             )
-        val visibilityEnum =
-            StatusVisibilityEnum.entries.firstOrNull {
-                it.name == visibility.get().uppercase()
-            } ?: StatusVisibilityEnum.UNLISTED
         val status =
             TextStatus(
                 status = text.get(),
-                visibility = visibilityEnum,
-                language = language.get(),
             )
         when (val result = runBlocking { SendSdk(config).sendText(status) }) {
             is SendResult.Simulated -> {
                 val info = result.info
                 logger.lifecycle("[simulate] server:     ${server.get()}")
-                logger.lifecycle("[simulate] visibility: ${info.visibility ?: visibilityEnum.name.lowercase()}")
-                logger.lifecycle("[simulate] language:   ${info.language ?: language.get()}")
+                logger.lifecycle("[simulate] visibility: ${info.visibility ?: "(server default)"}")
+                logger.lifecycle("[simulate] language:   ${info.language}")
                 logger.lifecycle("[simulate] text:       ${info.text}")
             }
 
@@ -81,11 +74,11 @@ abstract class SendTextTask : DefaultTask() {
             }
 
             is SendResult.PostFailure -> {
-                error("Failed to post status: ${result.response}")
+                error(result.errorMessage)
             }
 
             is SendResult.UploadFailure -> {
-                error("Unexpected upload failure in sendText")
+                error(result.errorMessage)
             }
         }
     }
