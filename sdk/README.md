@@ -8,7 +8,8 @@ Both `sendText` and `sendMedia` are suspend functions — call them from a corou
 | Module | Description |
 |--------|-------------|
 | `sdk:configuration` | `SdkConfiguration` — shared auth/server config |
-| `sdk:send` | `SendSdk` — post text and media statuses |
+| `sdk:send` | `SendSdk` — post text and media statuses, delete statuses |
+| `sdk:read` | `ReadSdk` — read the home timeline and notifications, search |
 
 ## Setup
 
@@ -16,6 +17,7 @@ Both `sendText` and `sendMedia` are suspend functions — call them from a corou
 // build.gradle.kts
 dependencies {
     implementation("org.litote.mastodon.ktor.sdk:send:<version>")
+    implementation("org.litote.mastodon.ktor.sdk:read:<version>") // optional, for ReadSdk
 }
 ```
 
@@ -104,3 +106,37 @@ val sdk = SendSdk(
     mediaProcessingTimeout = 5.minutes,
 )
 ```
+
+`mediaContentType(fileName)` returns the MIME type matching a file extension, handy to build a `CreateMediaV2FormFile`.
+
+### 5. Delete a status
+
+```kotlin
+import org.litote.mastodon.ktor.sdk.send.DeleteResult
+
+when (val result = sdk.deleteStatus("109876543210")) {
+    is DeleteResult.Success -> println("Deleted: ${result.status.id}")
+    is DeleteResult.Failure -> println(result.errorMessage) // e.g. "Failed to delete status 1098…: Record not found"
+    is DeleteResult.Simulated -> println("Would delete ${result.id}")
+}
+```
+
+### 6. Read the timeline, notifications and search (`sdk:read`)
+
+```kotlin
+import org.litote.mastodon.ktor.sdk.read.ReadResult
+import org.litote.mastodon.ktor.sdk.read.ReadSdk
+import org.litote.mastodon.ktor.sdk.read.SearchType
+
+val reader = ReadSdk(config)
+
+when (val result = reader.homeTimeline(limit = 10)) { // limit: 1 to 40, default 20
+    is ReadResult.Success -> result.value.forEach { println("${it.account.acct}: ${it.content}") }
+    is ReadResult.Failure -> println(result.errorMessage)
+}
+
+reader.notifications(limit = 5)
+reader.search("kotlin", type = SearchType.HASHTAGS)
+```
+
+Read operations always contact the server, even when `simulate` is `true`.

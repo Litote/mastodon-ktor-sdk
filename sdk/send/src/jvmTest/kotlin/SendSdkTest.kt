@@ -13,6 +13,7 @@ import io.ktor.client.request.HttpRequestData
 import io.ktor.client.request.HttpResponseData
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
@@ -753,4 +754,78 @@ class SendSdkTest {
             assertFalse(getCalled)
             assertEquals(0, currentTime)
         }
+
+    @Test
+    fun `GIVEN existing status WHEN deleteStatus THEN returns Success and sends DELETE request`() =
+        runTest {
+            val requests = mutableListOf<HttpRequestData>()
+            val sdk =
+                SendSdk(
+                    configWith { request ->
+                        requests += request
+                        respondJson(statusJson, HttpStatusCode.OK)
+                    },
+                )
+
+            val result = sdk.deleteStatus("123456")
+
+            assertIs<DeleteResult.Success>(result)
+            assertEquals("123456", result.status.id)
+            assertEquals(HttpMethod.Delete, requests.single().method)
+            assertEquals("/api/v1/statuses/123456", requests.single().url.encodedPath)
+        }
+
+    @Test
+    fun `GIVEN simulate=true WHEN deleteStatus THEN returns Simulated without calling server`() =
+        runTest {
+            val sdk = SendSdk(simulateConfig(), simulate = true)
+
+            val result = sdk.deleteStatus("123456")
+
+            assertEquals(DeleteResult.Simulated("123456"), result)
+        }
+
+    @Test
+    fun `GIVEN blank id WHEN deleteStatus THEN throws IllegalArgumentException`() =
+        runTest {
+            assertFailsWith<IllegalArgumentException> { SendSdk(simulateConfig()).deleteStatus(" ") }
+        }
+
+    @Test
+    fun `GIVEN server errors WHEN deleteStatus THEN errorMessage contains server message or HTTP status`() =
+        runTest {
+            val cases =
+                listOf(
+                    Triple(HttpStatusCode.NotFound, """{"error": "Record not found"}""", "Record not found"),
+                    Triple(
+                        HttpStatusCode.Unauthorized,
+                        """{"error": "invalid_token", "error_description": "Token revoked"}""",
+                        "invalid_token (Token revoked)",
+                    ),
+                    Triple(HttpStatusCode.UnprocessableEntity, """{"error": "Validation failed", "details": {}}""", "Validation failed"),
+                    Triple(HttpStatusCode.Gone, "", "HTTP 410"),
+                    Triple(HttpStatusCode.InternalServerError, "", "HTTP 500"),
+                )
+            cases.forEach { (status, body, expected) ->
+                val sdk = SendSdk(configWith { respondJson(body, status) })
+
+                val result = sdk.deleteStatus("123456")
+
+                assertIs<DeleteResult.Failure>(result)
+                assertEquals("Failed to delete status 123456: $expected", result.errorMessage)
+            }
+        }
+
+    @Test
+    fun `GIVEN file names WHEN mediaContentType THEN returns content type from extension`() {
+        assertEquals(ContentType.Image.JPEG, mediaContentType("photo.JPG"))
+        assertEquals(ContentType.Image.JPEG, mediaContentType("photo.jpeg"))
+        assertEquals(ContentType.Image.PNG, mediaContentType("/tmp/a.png"))
+        assertEquals(ContentType.Image.GIF, mediaContentType("a.gif"))
+        assertEquals(ContentType("image", "webp"), mediaContentType("a.webp"))
+        assertEquals(ContentType.Video.MP4, mediaContentType("a.mp4"))
+        assertEquals(ContentType("video", "quicktime"), mediaContentType("a.mov"))
+        assertEquals(ContentType.Application.OctetStream, mediaContentType("archive.zip"))
+        assertEquals(ContentType.Application.OctetStream, mediaContentType("noextension"))
+    }
 }
