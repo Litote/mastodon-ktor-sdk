@@ -52,8 +52,9 @@ val result = sdk.sendText(TextStatus(status = "Hello from Kotlin!"))
 
 when (result) {
     is SendResult.Success -> println("Posted: ${result.status.url}")
-    is SendResult.PostFailure -> println("Post failed: ${result.response}")
-    is SendResult.UploadFailure -> println("File upload failed: $result")
+    is SendResult.PostFailure -> println(result.errorMessage) // e.g. "Failed to post status: Validation failed: ..."
+    is SendResult.UploadFailure -> println(result.errorMessage)
+    is SendResult.Simulated -> println("Simulated: ${result.info}")
 }
 ```
 
@@ -82,8 +83,9 @@ val result = sdk.sendMedia(
 
 when (result) {
     is SendResult.Success -> println("Posted: ${result.status.url}")
-    is SendResult.UploadFailure -> println("Upload failed: ${result.response}")
-    is SendResult.PostFailure -> println("Post failed: ${result.response}")
+    is SendResult.UploadFailure -> println(result.errorMessage) // e.g. "Failed to upload media: HTTP 410"
+    is SendResult.PostFailure -> println(result.errorMessage)
+    is SendResult.Simulated -> println("Simulated: ${result.info}")
 }
 ```
 

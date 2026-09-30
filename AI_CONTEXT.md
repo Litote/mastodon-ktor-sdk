@@ -60,7 +60,10 @@ Provides `SendSdk` — high-level coroutine-based API:
 - `sendText(TextStatus)` — posts a plain text status
 - `sendMedia(MediaStatus, List<CreateMediaV2Form>)` — uploads attachments then posts a media status
 
-Returns a sealed `SendResult` (`Success`, `PostFailure`, `UploadFailure`).
+Returns a sealed `SendResult` (`Success`, `PostFailure`, `UploadFailure`, `Simulated`).
+`PostFailure` / `UploadFailure` expose `errorMessage` (server `error` + `error_description`, or `HTTP <code>`); callers (MCP, CLI, Gradle plugin) render it instead of generic messages.
+
+`SdkConfiguration.visibility` / `language` are applied by `SendSdk` itself (`defaultVisibility` / `defaultLanguage` constructor params) to statuses that do not set their own value — callers must not copy them into the status. Unknown visibility → `null` (server account default).
 
 ### `cli`
 

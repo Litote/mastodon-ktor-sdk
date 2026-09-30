@@ -12,7 +12,6 @@ import org.litote.mastodon.ktor.sdk.configuration.SdkConfiguration
 import org.litote.mastodon.ktor.sdk.model.TextStatus
 import org.litote.mastodon.ktor.sdk.send.SendResult
 import org.litote.mastodon.ktor.sdk.send.SendSdk
-import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget4016b7e9.model.StatusVisibilityEnum
 
 internal class SendTextCommand : CoreSuspendingCliktCommand(name = "send-text") {
     private val server by option("--server", help = "Mastodon instance hostname (e.g. mastodon.social)").required()
@@ -31,21 +30,16 @@ internal class SendTextCommand : CoreSuspendingCliktCommand(name = "send-text") 
                 language = language,
                 simulate = simulate,
             )
-        val visibilityEnum =
-            StatusVisibilityEnum.entries.firstOrNull { it.name == visibility.uppercase() }
-                ?: StatusVisibilityEnum.UNLISTED
         val status =
             TextStatus(
                 status = text.joinToString(" "),
-                visibility = visibilityEnum,
-                language = language,
             )
         when (val result = SendSdk(config).sendText(status)) {
             is SendResult.Simulated -> {
                 val info = result.info
                 echo("[simulate] server:     $server")
-                echo("[simulate] visibility: ${info.visibility ?: visibilityEnum.name.lowercase()}")
-                echo("[simulate] language:   ${info.language ?: language}")
+                echo("[simulate] visibility: ${info.visibility ?: "(server default)"}")
+                echo("[simulate] language:   ${info.language}")
                 echo("[simulate] text:       ${info.text}")
             }
 
@@ -54,11 +48,11 @@ internal class SendTextCommand : CoreSuspendingCliktCommand(name = "send-text") 
             }
 
             is SendResult.PostFailure -> {
-                throw CliktError("Failed to post status: ${result.response}")
+                throw CliktError(result.errorMessage)
             }
 
             is SendResult.UploadFailure -> {
-                throw CliktError("Unexpected upload failure")
+                throw CliktError(result.errorMessage)
             }
         }
     }

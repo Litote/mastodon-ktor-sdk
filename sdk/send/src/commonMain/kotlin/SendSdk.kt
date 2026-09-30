@@ -6,12 +6,20 @@ import org.litote.mastodon.ktor.sdk.configuration.toClientConfiguration
 import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient
 import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2Form
 import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2Response
+import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2ResponseFailure
+import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2ResponseFailure401
 import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2ResponseSuccess
+import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2ResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.model.MediaStatus
 import org.litote.mastodon.ktor.sdk.model.TextStatus
+import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
+import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget4016b7e9.model.StatusVisibilityEnum
 import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApiV1StatusesPostClient
 import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApiV1StatusesPostClient.CreateStatusResponse
+import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApiV1StatusesPostClient.CreateStatusResponseFailure
+import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApiV1StatusesPostClient.CreateStatusResponseFailure401
 import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApiV1StatusesPostClient.CreateStatusResponseSuccess
+import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApiV1StatusesPostClient.CreateStatusResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.CreateStatusResponse as StatusBody
 
 /**
@@ -31,8 +39,8 @@ public data class AttachmentInfo(
  * Details about the status that would have been posted when simulate mode is active.
  *
  * @property text Status text that would be posted.
- * @property visibility Resolved visibility value, or `null` if not set on the status.
- * @property language Language code, or `null` if not set on the status.
+ * @property visibility Resolved visibility value (status value, else the SDK default), or `null` if neither is set.
+ * @property language Language code (status value, else the SDK default), or `null` if neither is set.
  * @property spoilerText Content warning text, or `null` if not set.
  * @property inReplyToId ID of the status being replied to, or `null` if not set.
  * @property attachments Media attachments that would have been uploaded; empty for text-only statuses.
@@ -70,7 +78,18 @@ public sealed class SendResult {
     public data class UploadFailure(
         val form: CreateMediaV2Form,
         val response: CreateMediaV2Response,
-    ) : SendResult()
+    ) : SendResult() {
+        /** Human-readable description of the failure, including the server error message when available. */
+        public val errorMessage: String
+            get() =
+                "Failed to upload media: " +
+                    when (response) {
+                        is CreateMediaV2ResponseFailure401 -> response.body.describe()
+                        is CreateMediaV2ResponseFailure -> "HTTP 410"
+                        is CreateMediaV2ResponseUnknownFailure -> "HTTP ${response.statusCode}"
+                        is CreateMediaV2ResponseSuccess -> "unexpected success response"
+                    }
+    }
 
     /**
      * The status post request failed after all attachments were uploaded successfully.
@@ -79,7 +98,18 @@ public sealed class SendResult {
      */
     public data class PostFailure(
         val response: CreateStatusResponse,
-    ) : SendResult()
+    ) : SendResult() {
+        /** Human-readable description of the failure, including the server error message when available. */
+        public val errorMessage: String
+            get() =
+                "Failed to post status: " +
+                    when (response) {
+                        is CreateStatusResponseFailure401 -> response.body.describe()
+                        is CreateStatusResponseFailure -> "HTTP 410"
+                        is CreateStatusResponseUnknownFailure -> "HTTP ${response.statusCode}"
+                        is CreateStatusResponseSuccess -> "unexpected success response"
+                    }
+    }
 
     /**
      * The status was not sent because simulate mode is active.
@@ -91,6 +121,16 @@ public sealed class SendResult {
     ) : SendResult()
 }
 
+private fun Error.describe(): String = errorDescription?.let { "$error ($it)" } ?: error
+
+/**
+ * Parses a visibility name (case-insensitive) into a [StatusVisibilityEnum], or `null` if it is not a known value.
+ */
+internal fun String.toStatusVisibility(): StatusVisibilityEnum? =
+    StatusVisibilityEnum.entries.firstOrNull {
+        it != StatusVisibilityEnum.UNKNOWN_ && it.name.equals(this, ignoreCase = true)
+    }
+
 /**
  * High-level SDK for posting statuses to a Mastodon instance.
  *
@@ -101,13 +141,30 @@ public sealed class SendResult {
  * val sdk = SendSdk(SdkConfiguration(server = "mastodon.social", token = "…"))
  * val result = sdk.sendText(TextStatus(status = "Hello, Mastodon!"))
  * ```
+ *
+ * @param clientConfig Low-level configuration used by the generated API clients.
+ * @param simulate When `true`, no request is sent and [SendResult.Simulated] is returned.
+ * @param defaultVisibility Visibility applied to statuses that do not set their own.
+ * @param defaultLanguage Language applied to statuses that do not set their own.
  */
 public class SendSdk public constructor(
     private val clientConfig: ClientConfiguration,
     private val simulate: Boolean = false,
+    private val defaultVisibility: StatusVisibilityEnum? = null,
+    private val defaultLanguage: String? = null,
 ) {
-    /** Creates a [SendSdk] configured from the given [SdkConfiguration]. */
-    public constructor(config: SdkConfiguration) : this(config.toClientConfiguration(), config.simulate)
+    /**
+     * Creates a [SendSdk] configured from the given [SdkConfiguration].
+     *
+     * [SdkConfiguration.visibility] and [SdkConfiguration.language] are applied to every status that does not
+     * set its own value. An unknown visibility is ignored, letting the server apply the account default.
+     */
+    public constructor(config: SdkConfiguration) : this(
+        clientConfig = config.toClientConfiguration(),
+        simulate = config.simulate,
+        defaultVisibility = config.visibility.toStatusVisibility(),
+        defaultLanguage = config.language,
+    )
 
     /**
      * Posts a plain-text status.
@@ -118,19 +175,24 @@ public class SendSdk public constructor(
      */
     public suspend fun sendText(text: TextStatus): SendResult {
         require(text.status.isNotBlank()) { "Status text is required" }
+        val effective =
+            text.copy(
+                visibility = text.visibility ?: defaultVisibility,
+                language = text.language ?: defaultLanguage,
+            )
         if (simulate) {
             return SendResult.Simulated(
                 SimulateInfo(
-                    text = text.status,
-                    visibility = text.visibility?.name?.lowercase(),
-                    language = text.language,
-                    spoilerText = text.spoilerText,
-                    inReplyToId = text.inReplyToId,
+                    text = effective.status,
+                    visibility = effective.visibility?.name?.lowercase(),
+                    language = effective.language,
+                    spoilerText = effective.spoilerText,
+                    inReplyToId = effective.inReplyToId,
                 ),
             )
         }
         val client = StatusesApiV1StatusesPostClient(clientConfig)
-        return when (val response = client.createStatus(text)) {
+        return when (val response = client.createStatus(effective)) {
             is CreateStatusResponseSuccess -> {
                 SendResult.Success(response.body)
             }
@@ -159,14 +221,19 @@ public class SendSdk public constructor(
     ): SendResult {
         require(attachments.isNotEmpty()) { "At least one attachment is required" }
         require(attachments.size <= 4) { "At most 4 attachments are supported" }
+        val effective =
+            status.copy(
+                visibility = status.visibility ?: defaultVisibility,
+                language = status.language ?: defaultLanguage,
+            )
         if (simulate) {
             return SendResult.Simulated(
                 SimulateInfo(
-                    text = status.status ?: "",
-                    visibility = status.visibility?.name?.lowercase(),
-                    language = status.language,
-                    spoilerText = status.spoilerText,
-                    inReplyToId = status.inReplyToId,
+                    text = effective.status ?: "",
+                    visibility = effective.visibility?.name?.lowercase(),
+                    language = effective.language,
+                    spoilerText = effective.spoilerText,
+                    inReplyToId = effective.inReplyToId,
                     attachments =
                         attachments.map { form ->
                             AttachmentInfo(
@@ -194,7 +261,7 @@ public class SendSdk public constructor(
         }
 
         val client = StatusesApiV1StatusesPostClient(clientConfig)
-        return when (val response = client.createStatus(status.copy(mediaIds = mediaIds))) {
+        return when (val response = client.createStatus(effective.copy(mediaIds = mediaIds))) {
             is CreateStatusResponseSuccess -> {
                 SendResult.Success(response.body)
             }
