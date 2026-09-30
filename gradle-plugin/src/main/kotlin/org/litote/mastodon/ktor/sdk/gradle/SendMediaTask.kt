@@ -1,6 +1,5 @@
 package org.litote.mastodon.ktor.sdk.gradle
 
-import io.ktor.http.ContentType
 import kotlinx.coroutines.runBlocking
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.ListProperty
@@ -15,6 +14,7 @@ import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPo
 import org.litote.mastodon.ktor.sdk.model.MediaStatus
 import org.litote.mastodon.ktor.sdk.send.SendResult
 import org.litote.mastodon.ktor.sdk.send.SendSdk
+import org.litote.mastodon.ktor.sdk.send.mediaContentType
 import java.io.Serializable
 
 /**
@@ -113,7 +113,7 @@ abstract class SendMediaTask : DefaultTask() {
             allAttachments.map { attachment ->
                 val bytes = java.io.File(attachment.filePath).readBytes()
                 CreateMediaV2Form(
-                    file = CreateMediaV2FormFile(bytes, contentTypeForExtension(attachment.filePath)),
+                    file = CreateMediaV2FormFile(bytes, mediaContentType(attachment.filePath)),
                     description = attachment.description,
                 )
             }
@@ -154,14 +154,3 @@ abstract class SendMediaTask : DefaultTask() {
         }
     }
 }
-
-private fun contentTypeForExtension(path: String): ContentType =
-    when (path.substringAfterLast('.').lowercase()) {
-        "jpg", "jpeg" -> ContentType.Image.JPEG
-        "png" -> ContentType.Image.PNG
-        "gif" -> ContentType.Image.GIF
-        "webp" -> ContentType("image", "webp")
-        "mp4" -> ContentType.Video.MP4
-        "mov" -> ContentType("video", "quicktime")
-        else -> ContentType.Application.OctetStream
-    }

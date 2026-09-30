@@ -24,6 +24,7 @@ configure(
     listOf(
         project(":sdk:configuration"),
         project(":sdk:send"),
+        project(":sdk:read"),
         project(":cli"),
         project(":mcp-server"),
         project(":gradle-plugin"),
@@ -37,6 +38,7 @@ configure(
 dependencies {
     dokka(project(":sdk:configuration"))
     dokka(project(":sdk:send"))
+    dokka(project(":sdk:read"))
     dokka(project(":cli"))
     dokka(project(":mcp-server"))
     dokka(project(":gradle-plugin"))

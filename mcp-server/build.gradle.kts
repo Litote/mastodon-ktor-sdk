@@ -21,9 +21,13 @@ kotlin {
             dependsOn(commonMain.get())
             dependencies {
                 implementation(project(":sdk:send"))
+                // ReadSdk exposes Status, Notification and Search via api()
+                implementation(project(":sdk:read"))
                 implementation(project(":sdk:configuration"))
                 // TextStatus, StatusVisibilityEnum, Status — exposed via api() in statuses client
                 implementation(project(":client:statuses-api-v1-statuses-post-client"))
+                // CreateMediaV2Form used by send_media_status
+                implementation(project(":client:media-api-v2-media-post-client"))
                 implementation(libs.mcp.kotlin.sdk.server)
                 implementation(libs.kotlinx.io.core)
             }
@@ -57,6 +61,7 @@ kotlin {
                 implementation(libs.coroutines.test)
                 implementation(project(":client:media-api-v2-media-post-client"))
                 implementation(project(":client:media-api-v1-media-id-get-client"))
+                implementation(project(":client:statuses-api-v1-statuses-id-delete-client"))
             }
         }
     }

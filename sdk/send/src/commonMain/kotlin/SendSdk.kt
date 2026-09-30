@@ -23,6 +23,8 @@ import org.litote.mastodon.ktor.sdk.model.MediaStatus
 import org.litote.mastodon.ktor.sdk.model.TextStatus
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget4016b7e9.model.StatusVisibilityEnum
+import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesIdDelete.client.StatusesApiV1StatusesIdDeleteClient
+import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesIdDelete.client.StatusesApiV1StatusesIdDeleteClient.DeleteStatusResponseSuccess
 import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApiV1StatusesPostClient
 import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApiV1StatusesPostClient.CreateStatusResponse
 import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApiV1StatusesPostClient.CreateStatusResponseFailure
@@ -161,7 +163,7 @@ public sealed class SendResult {
     ) : SendResult()
 }
 
-private fun Error.describe(): String = errorDescription?.let { "$error ($it)" } ?: error
+internal fun Error.describe(): String = errorDescription?.let { "$error ($it)" } ?: error
 
 /**
  * Parses a visibility name (case-insensitive) into a [StatusVisibilityEnum], or `null` if it is not a known value.
@@ -174,7 +176,7 @@ internal fun String.toStatusVisibility(): StatusVisibilityEnum? =
 /**
  * High-level SDK for posting statuses to a Mastodon instance.
  *
- * Create an instance with a [SdkConfiguration] and call [sendText] or [sendMedia].
+ * Create an instance with a [SdkConfiguration] and call [sendText], [sendMedia] or [deleteStatus].
  * Both functions are suspending and must be called from a coroutine context.
  *
  * ```kotlin
@@ -321,6 +323,25 @@ public class SendSdk public constructor(
             else -> {
                 SendResult.PostFailure(response)
             }
+        }
+    }
+
+    /**
+     * Deletes a status authored by the authenticated user.
+     *
+     * @param id ID of the status to delete. Must not be blank.
+     * @return [DeleteResult.Success] on success, [DeleteResult.Failure] if the server refused the request,
+     *   or [DeleteResult.Simulated] in simulate mode.
+     * @throws IllegalArgumentException if [id] is blank.
+     */
+    public suspend fun deleteStatus(id: String): DeleteResult {
+        require(id.isNotBlank()) { "Status id is required" }
+        if (simulate) {
+            return DeleteResult.Simulated(id)
+        }
+        return when (val response = StatusesApiV1StatusesIdDeleteClient(clientConfig).deleteStatus(id)) {
+            is DeleteStatusResponseSuccess -> DeleteResult.Success(response.body)
+            else -> DeleteResult.Failure(id, response)
         }
     }
 

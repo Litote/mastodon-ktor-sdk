@@ -25,7 +25,8 @@ mastodon-ktor-sdk/
 │   └── *-client/              → One module per API operation (generated)
 ├── sdk/
 │   ├── configuration/         → SdkConfiguration + toClientConfiguration()
-│   └── send/                  → SendSdk — high-level SDK to post text and media statuses
+│   ├── send/                  → SendSdk — high-level SDK to post text and media statuses, delete statuses
+│   └── read/                  → ReadSdk — home timeline, notifications, search
 ├── cli/                       → Command-line tools (SendText, SendMedia) — JVM entry points
 ├── mcp-server/                → MCP server exposing Mastodon tools via STDIO transport
 ├── gradle-plugin/             → Gradle plugin (sendText / sendMedia tasks)
@@ -67,6 +68,16 @@ Returns a sealed `SendResult` (`Success`, `PostFailure`, `UploadFailure`, `Media
 
 `sendMedia` waits for asynchronous media processing: when `POST /api/v2/media` returns an attachment with `url == null`, it polls `GET /api/v1/media/{id}` (`media-api-v1-media-id-get-client`) every `mediaPollInterval` (default 1s) until 200, within `mediaProcessingTimeout` (default 60s) using `withTimeoutOrNull`. Any other response or timeout → `MediaProcessingFailure(mediaId, response?)` (`null` = timeout) and the status is not posted. Tests driving this use a `MockEngine` whose `dispatcher` is a `StandardTestDispatcher(testScheduler)` so delays and timeouts run in virtual time.
 
+`deleteStatus(id)` returns a sealed `DeleteResult` (`Success`, `Failure` with `errorMessage`, `Simulated`). `mediaContentType(fileName)` is the shared extension → MIME mapping used by the CLI, the Gradle plugin and the MCP server.
+
+### `sdk/read`
+
+Provides `ReadSdk` (built from `SdkConfiguration` or `ClientConfiguration`):
+- `homeTimeline(limit)`, `notifications(limit)` — `limit` in `1..MAX_READ_LIMIT` (40), default `DEFAULT_READ_LIMIT` (20)
+- `search(query, type: SearchType?, limit)`
+
+Returns a sealed `ReadResult<T>` (`Success(value)`, `Failure(errorMessage)`). A 206 on the home timeline (feed being regenerated) is a `Failure`. Generated clients are declared with `api()` since their `Status` / `Notification` / `Search` types are part of the public API. Reads never honour `simulate`.
+
 ### `cli`
 
 JVM entry points that wrap `SendSdk`:
@@ -83,7 +94,7 @@ JVM entry points that wrap `SendSdk`:
 MCP (Model Context Protocol) server exposing Mastodon operations as MCP tools, usable from Claude Desktop, Claude Code, or any MCP client.
 
 - **Transport:** STDIO (`StdioServerTransport` from `io.modelcontextprotocol:kotlin-sdk-server`)
-- **Tools exposed:** `send_text_status` — posts a plain text status, returns the URL
+- **Tools exposed:** `send_text_status`, `send_media_status` (local files, 1–4), `delete_status`, `get_home_timeline`, `get_notifications`, `search`. Registration is in `MastodonMcpServer.kt`; each tool delegates to an `internal suspend fun handleX(args, fn)` in `ToolHandlers.kt` (testable without transport); plain-text rendering of statuses/notifications/search (HTML → text) is in `TextRendering.kt`. Read tools ignore simulate mode.
 - **Distribution:** fat-jar (JVM, universal) via `shadowJar` + native binaries (linuxX64, linuxArm64, macosArm64, mingwX64)
 - **Simulate mode:** set `MASTODON_SIMULATE=true` env var (or `SdkConfiguration.simulate = true`) to return `SendResult.Simulated` without calling the server. Each caller renders the `SimulateInfo` with its own format (`[simulate] ...` lines).
 - **Source sets:** custom intermediate sets required because MCP SDK server does not publish tvOS/watchOS targets, and because `ssize_t` width differs between Unix (64-bit) and Windows (32-bit):

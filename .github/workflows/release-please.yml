@@ -241,7 +241,7 @@ jobs:
           done
 
           if [ "$CHUNK" -eq 0 ]; then
-            TASKS="$TASKS :sdk:configuration:publishAndReleaseToMavenCentral :sdk:send:publishAndReleaseToMavenCentral"
+            TASKS="$TASKS :sdk:configuration:publishAndReleaseToMavenCentral :sdk:send:publishAndReleaseToMavenCentral :sdk:read:publishAndReleaseToMavenCentral"
           fi
 
           ./gradlew $TASKS \

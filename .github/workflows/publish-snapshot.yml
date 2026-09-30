@@ -73,6 +73,6 @@ jobs:
           TASKS=$(ls client/ | grep -vE "^(build|shared)" | grep -E "${{ matrix.client_pattern }}" | sed 's/^/:client:/' | sed 's/$/:publishToMavenCentral/' | tr '\n' ' ')
           if [ "${{ matrix.include_other }}" = "true" ]; then
             SHARED=$(ls client/ | grep "^shared" | sed 's/^/:client:/' | sed 's/$/:publishToMavenCentral/' | tr '\n' ' ')
-            TASKS="$TASKS $SHARED :sdk:configuration:publishToMavenCentral :sdk:send:publishToMavenCentral"
+            TASKS="$TASKS $SHARED :sdk:configuration:publishToMavenCentral :sdk:send:publishToMavenCentral :sdk:read:publishToMavenCentral"
           fi
           ./gradlew $TASKS --max-workers=2
