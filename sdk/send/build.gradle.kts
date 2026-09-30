@@ -7,6 +7,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":client:statuses-api-v1-statuses-post-client"))
             implementation(project(":client:media-api-v2-media-post-client"))
+            implementation(project(":client:media-api-v1-media-id-get-client"))
             implementation(project(":sdk:configuration"))
         }
 

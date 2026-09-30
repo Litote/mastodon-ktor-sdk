@@ -84,6 +84,10 @@ internal class SendMediaCommand : CoreSuspendingCliktCommand(name = "send-media"
             is SendResult.UploadFailure -> {
                 throw CliktError(result.errorMessage)
             }
+
+            is SendResult.MediaProcessingFailure -> {
+                throw CliktError(result.errorMessage)
+            }
         }
     }
 }

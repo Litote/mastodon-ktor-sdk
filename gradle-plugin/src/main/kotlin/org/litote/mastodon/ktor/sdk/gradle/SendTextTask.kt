@@ -80,6 +80,10 @@ abstract class SendTextTask : DefaultTask() {
             is SendResult.UploadFailure -> {
                 error(result.errorMessage)
             }
+
+            is SendResult.MediaProcessingFailure -> {
+                error(result.errorMessage)
+            }
         }
     }
 }

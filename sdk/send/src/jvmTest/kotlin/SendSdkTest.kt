@@ -2,6 +2,7 @@ package org.litote.mastodon.ktor.sdk.send
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.MockEngineConfig
 import io.ktor.client.engine.mock.MockRequestHandleScope
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.respondBadRequest
@@ -15,6 +16,9 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
@@ -28,9 +32,11 @@ import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
 class SendSdkTest {
     private val statusJson =
@@ -74,7 +80,11 @@ class SendSdkTest {
         }
         """.trimIndent()
 
-    private val mediaJson = """{"id": "media123", "type": "image"}"""
+    private val mediaJson = """{"id": "media123", "type": "image", "url": "https://files.example.com/media123.png"}"""
+
+    private val processingMediaJson = """{"id": "media123", "type": "video", "url": null}"""
+
+    private val processedMediaJson = """{"id": "media123", "type": "video", "url": "https://files.example.com/media123.mp4"}"""
 
     private val jsonConfig =
         Json {
@@ -185,6 +195,26 @@ class SendSdkTest {
                 else -> respondJson(statusJson, HttpStatusCode.OK)
             }
         }
+
+    /**
+     * Mock configuration whose engine runs on the test scheduler, so that `delay` and timeouts
+     * in the polling loop use virtual time.
+     */
+    private fun TestScope.virtualTimeConfig(
+        handler: suspend MockRequestHandleScope.(HttpRequestData) -> HttpResponseData,
+    ): ClientConfiguration {
+        val engineConfig =
+            MockEngineConfig().apply {
+                dispatcher = StandardTestDispatcher(testScheduler)
+                addHandler(handler)
+            }
+        val client =
+            HttpClient(MockEngine(engineConfig)) {
+                install(ContentNegotiation) { json(jsonConfig) }
+                defaultRequest { url("https://mastodon.social/") }
+            }
+        return ClientConfiguration(baseUrl = "https://mastodon.social/", client = client, json = jsonConfig)
+    }
 
     private fun simulateConfig(): ClientConfiguration = ClientConfiguration(baseUrl = "https://mastodon.social/", json = jsonConfig)
 
@@ -568,5 +598,159 @@ class SendSdkTest {
 
             assertIs<SendResult.UploadFailure>(result)
             assertEquals("Failed to upload media: HTTP 502", result.errorMessage)
+        }
+
+    @Test
+    fun `GIVEN upload returns media without url WHEN sendMedia THEN polls until processed and posts status`() =
+        runTest {
+            val getCalls = mutableListOf<String>()
+            val statusBodies = mutableListOf<String>()
+            val config =
+                virtualTimeConfig { request ->
+                    when (request.url.encodedPath) {
+                        "/api/v2/media" -> {
+                            respondJson(processingMediaJson, HttpStatusCode.Accepted)
+                        }
+
+                        "/api/v1/media/media123" -> {
+                            getCalls += request.url.encodedPath
+                            if (getCalls.size < 2) {
+                                respondJson(processingMediaJson, HttpStatusCode.PartialContent)
+                            } else {
+                                respondJson(processedMediaJson, HttpStatusCode.OK)
+                            }
+                        }
+
+                        else -> {
+                            statusBodies += request.body.toByteArray().decodeToString()
+                            respondJson(statusJson, HttpStatusCode.OK)
+                        }
+                    }
+                }
+            val sdk = SendSdk(config, mediaPollInterval = 2.seconds)
+
+            val result = sdk.sendMedia(MediaStatus(mediaIds = emptyList()), listOf(fakeAttachment()))
+
+            assertIs<SendResult.Success>(result)
+            assertEquals(2, getCalls.size)
+            assertEquals(4_000, currentTime)
+            assertContains(statusBodies.single(), "\"media_ids\":[\"media123\"]")
+        }
+
+    @Test
+    fun `GIVEN media never finishes processing WHEN sendMedia THEN returns MediaProcessingFailure after timeout`() =
+        runTest {
+            var statusPosted = false
+            val config =
+                virtualTimeConfig { request ->
+                    when (request.url.encodedPath) {
+                        "/api/v2/media" -> {
+                            respondJson(processingMediaJson, HttpStatusCode.Accepted)
+                        }
+
+                        "/api/v1/media/media123" -> {
+                            respondJson(processingMediaJson, HttpStatusCode.PartialContent)
+                        }
+
+                        else -> {
+                            statusPosted = true
+                            respondJson(statusJson, HttpStatusCode.OK)
+                        }
+                    }
+                }
+            val sdk = SendSdk(config, mediaPollInterval = 1.seconds, mediaProcessingTimeout = 5.seconds)
+
+            val result = sdk.sendMedia(MediaStatus(mediaIds = emptyList()), listOf(fakeAttachment()))
+
+            assertIs<SendResult.MediaProcessingFailure>(result)
+            assertEquals("media123", result.mediaId)
+            assertNull(result.response)
+            assertEquals("Media media123 was not processed within the timeout", result.errorMessage)
+            assertEquals(5_000, currentTime)
+            assertFalse(statusPosted)
+        }
+
+    @Test
+    fun `GIVEN media processing fails on server WHEN sendMedia THEN returns MediaProcessingFailure with server message`() =
+        runTest {
+            val config =
+                virtualTimeConfig { request ->
+                    when (request.url.encodedPath) {
+                        "/api/v2/media" -> respondJson(processingMediaJson, HttpStatusCode.Accepted)
+                        "/api/v1/media/media123" -> respondJson("""{"error": "Record not found"}""", HttpStatusCode.NotFound)
+                        else -> respondJson(statusJson, HttpStatusCode.OK)
+                    }
+                }
+            val sdk = SendSdk(config)
+
+            val result = sdk.sendMedia(MediaStatus(mediaIds = emptyList()), listOf(fakeAttachment()))
+
+            assertIs<SendResult.MediaProcessingFailure>(result)
+            assertEquals("Media media123 processing failed: Record not found", result.errorMessage)
+        }
+
+    @Test
+    fun `GIVEN media processing returns 410 WHEN sendMedia THEN errorMessage contains HTTP 410`() =
+        runTest {
+            val config =
+                virtualTimeConfig { request ->
+                    when (request.url.encodedPath) {
+                        "/api/v2/media" -> respondJson(processingMediaJson, HttpStatusCode.Accepted)
+                        "/api/v1/media/media123" -> respondJson("", HttpStatusCode.Gone)
+                        else -> respondJson(statusJson, HttpStatusCode.OK)
+                    }
+                }
+
+            val result = SendSdk(config).sendMedia(MediaStatus(mediaIds = emptyList()), listOf(fakeAttachment()))
+
+            assertIs<SendResult.MediaProcessingFailure>(result)
+            assertEquals("Media media123 processing failed: HTTP 410", result.errorMessage)
+        }
+
+    @Test
+    fun `GIVEN media processing returns unexpected status WHEN sendMedia THEN errorMessage contains HTTP status`() =
+        runTest {
+            val config =
+                virtualTimeConfig { request ->
+                    when (request.url.encodedPath) {
+                        "/api/v2/media" -> respondJson(processingMediaJson, HttpStatusCode.Accepted)
+                        "/api/v1/media/media123" -> respondJson("", HttpStatusCode.BadGateway)
+                        else -> respondJson(statusJson, HttpStatusCode.OK)
+                    }
+                }
+
+            val result = SendSdk(config).sendMedia(MediaStatus(mediaIds = emptyList()), listOf(fakeAttachment()))
+
+            assertIs<SendResult.MediaProcessingFailure>(result)
+            assertEquals("Media media123 processing failed: HTTP 502", result.errorMessage)
+        }
+
+    @Test
+    fun `GIVEN upload returns media with url WHEN sendMedia THEN does not poll media status`() =
+        runTest {
+            var getCalled = false
+            val config =
+                virtualTimeConfig { request ->
+                    when (request.url.encodedPath) {
+                        "/api/v2/media" -> {
+                            respondJson(mediaJson, HttpStatusCode.OK)
+                        }
+
+                        "/api/v1/media/media123" -> {
+                            getCalled = true
+                            respondJson(processedMediaJson, HttpStatusCode.OK)
+                        }
+
+                        else -> {
+                            respondJson(statusJson, HttpStatusCode.OK)
+                        }
+                    }
+                }
+
+            val result = SendSdk(config).sendMedia(MediaStatus(mediaIds = emptyList()), listOf(fakeAttachment()))
+
+            assertIs<SendResult.Success>(result)
+            assertFalse(getCalled)
+            assertEquals(0, currentTime)
         }
 }
