@@ -2,38 +2,36 @@ package org.litote.mastodon.ktor.sdk.send
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
-import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
+import org.litote.mastodon.ktor.sdk.api.client.ClientConfiguration
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2Form
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2Response
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2ResponseFailure
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2ResponseFailure401
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2ResponseSuccess
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2ResponseUnknownFailure
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.GetMediaResponse
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.GetMediaResponseFailure
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.GetMediaResponseFailure401
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.GetMediaResponseSuccess
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.GetMediaResponseSuccess200
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.GetMediaResponseUnknownFailure
+import org.litote.mastodon.ktor.sdk.api.client.StatusesClient
+import org.litote.mastodon.ktor.sdk.api.client.StatusesClient.CreateStatusResponse
+import org.litote.mastodon.ktor.sdk.api.client.StatusesClient.CreateStatusResponseFailure
+import org.litote.mastodon.ktor.sdk.api.client.StatusesClient.CreateStatusResponseFailure401
+import org.litote.mastodon.ktor.sdk.api.client.StatusesClient.CreateStatusResponseSuccess
+import org.litote.mastodon.ktor.sdk.api.client.StatusesClient.CreateStatusResponseUnknownFailure
+import org.litote.mastodon.ktor.sdk.api.client.StatusesClient.DeleteStatusResponseSuccess
+import org.litote.mastodon.ktor.sdk.api.model.Error
+import org.litote.mastodon.ktor.sdk.api.model.MediaStatus
+import org.litote.mastodon.ktor.sdk.api.model.StatusVisibilityEnum
+import org.litote.mastodon.ktor.sdk.api.model.TextStatus
 import org.litote.mastodon.ktor.sdk.configuration.SdkConfiguration
 import org.litote.mastodon.ktor.sdk.configuration.toClientConfiguration
-import org.litote.mastodon.ktor.sdk.mediaApiV1MediaIdGet.client.MediaApiV1MediaIdGetClient
-import org.litote.mastodon.ktor.sdk.mediaApiV1MediaIdGet.client.MediaApiV1MediaIdGetClient.GetMediaResponse
-import org.litote.mastodon.ktor.sdk.mediaApiV1MediaIdGet.client.MediaApiV1MediaIdGetClient.GetMediaResponseFailure
-import org.litote.mastodon.ktor.sdk.mediaApiV1MediaIdGet.client.MediaApiV1MediaIdGetClient.GetMediaResponseFailure401
-import org.litote.mastodon.ktor.sdk.mediaApiV1MediaIdGet.client.MediaApiV1MediaIdGetClient.GetMediaResponseSuccess
-import org.litote.mastodon.ktor.sdk.mediaApiV1MediaIdGet.client.MediaApiV1MediaIdGetClient.GetMediaResponseSuccess200
-import org.litote.mastodon.ktor.sdk.mediaApiV1MediaIdGet.client.MediaApiV1MediaIdGetClient.GetMediaResponseUnknownFailure
-import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient
-import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2Form
-import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2Response
-import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2ResponseFailure
-import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2ResponseFailure401
-import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2ResponseSuccess
-import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2ResponseUnknownFailure
-import org.litote.mastodon.ktor.sdk.model.MediaStatus
-import org.litote.mastodon.ktor.sdk.model.TextStatus
-import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
-import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget4016b7e9.model.StatusVisibilityEnum
-import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesIdDelete.client.StatusesApiV1StatusesIdDeleteClient
-import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesIdDelete.client.StatusesApiV1StatusesIdDeleteClient.DeleteStatusResponseSuccess
-import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApiV1StatusesPostClient
-import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApiV1StatusesPostClient.CreateStatusResponse
-import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApiV1StatusesPostClient.CreateStatusResponseFailure
-import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApiV1StatusesPostClient.CreateStatusResponseFailure401
-import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApiV1StatusesPostClient.CreateStatusResponseSuccess
-import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesPost.client.StatusesApiV1StatusesPostClient.CreateStatusResponseUnknownFailure
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.CreateStatusResponse as StatusBody
+import org.litote.mastodon.ktor.sdk.api.model.CreateStatusResponse as StatusBody
 
 /**
  * Describes a media attachment that would be uploaded in simulate mode.
@@ -237,7 +235,7 @@ public class SendSdk public constructor(
                 ),
             )
         }
-        val client = StatusesApiV1StatusesPostClient(clientConfig)
+        val client = StatusesClient(clientConfig)
         return when (val response = client.createStatus(effective)) {
             is CreateStatusResponseSuccess -> {
                 SendResult.Success(response.body)
@@ -295,7 +293,7 @@ public class SendSdk public constructor(
                 ),
             )
         }
-        val mediaClient = MediaApiV2MediaPostClient(clientConfig)
+        val mediaClient = MediaClient(clientConfig)
         val mediaIds = mutableListOf<String>()
 
         for (form in attachments) {
@@ -314,7 +312,7 @@ public class SendSdk public constructor(
             }
         }
 
-        val client = StatusesApiV1StatusesPostClient(clientConfig)
+        val client = StatusesClient(clientConfig)
         return when (val response = client.createStatus(effective.copy(mediaIds = mediaIds))) {
             is CreateStatusResponseSuccess -> {
                 SendResult.Success(response.body)
@@ -339,7 +337,7 @@ public class SendSdk public constructor(
         if (simulate) {
             return DeleteResult.Simulated(id)
         }
-        return when (val response = StatusesApiV1StatusesIdDeleteClient(clientConfig).deleteStatus(id)) {
+        return when (val response = StatusesClient(clientConfig).deleteStatus(id)) {
             is DeleteStatusResponseSuccess -> DeleteResult.Success(response.body)
             else -> DeleteResult.Failure(id, response)
         }
@@ -351,14 +349,14 @@ public class SendSdk public constructor(
      * @return `null` once the media is ready, or a [SendResult.MediaProcessingFailure] otherwise.
      */
     private suspend fun awaitMediaProcessed(mediaId: String): SendResult.MediaProcessingFailure? {
-        val client = MediaApiV1MediaIdGetClient(clientConfig)
+        val client = MediaClient(clientConfig)
         val response = withTimeoutOrNull(mediaProcessingTimeout) { pollUntilProcessingEnds(client, mediaId) }
         return if (response is GetMediaResponseSuccess200) null else SendResult.MediaProcessingFailure(mediaId, response)
     }
 
     /** Returns the first response that is not `206 Partial Content` (i.e. processing is no longer in progress). */
     private suspend fun pollUntilProcessingEnds(
-        client: MediaApiV1MediaIdGetClient,
+        client: MediaClient,
         mediaId: String,
     ): GetMediaResponse {
         while (true) {

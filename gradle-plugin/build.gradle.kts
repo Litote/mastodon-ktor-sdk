@@ -35,9 +35,7 @@ dependencies {
 
     implementation(project(":sdk:send"))
     implementation(project(":sdk:configuration"))
-    implementation(project(":client:statuses-api-v1-statuses-post-client"))
-    implementation(project(":client:shared-accountsapiv1accountsidstatusesget-4016b7e9"))
-    implementation(project(":client:media-api-v2-media-post-client"))
+    implementation(project(":sdk:api"))
 }
 
 val pluginDescription = "Gradle plugin to call Mastodon API"

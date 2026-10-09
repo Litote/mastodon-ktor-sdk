@@ -20,14 +20,10 @@ kotlin {
     }
 
         if (providers.gradleProperty("appleTargets").map { it.toBoolean() }.getOrElse(true)) {
+            // tvOS, watchOS and iosX64 are not published: Maven Central limits the number of published files.
             iosArm64()
-            iosX64()
             iosSimulatorArm64()
             macosArm64()
-            tvosArm64()
-            tvosSimulatorArm64()
-            watchosArm64()
-            watchosSimulatorArm64()
         }
 
         js {

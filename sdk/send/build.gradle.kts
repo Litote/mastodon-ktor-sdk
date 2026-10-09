@@ -5,10 +5,8 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":client:statuses-api-v1-statuses-post-client"))
-            implementation(project(":client:media-api-v2-media-post-client"))
-            implementation(project(":client:media-api-v1-media-id-get-client"))
-            implementation(project(":client:statuses-api-v1-statuses-id-delete-client"))
+            // TextStatus, MediaStatus, CreateMediaV2Form and response types are part of SendSdk's public API.
+            api(project(":sdk:api"))
             implementation(project(":sdk:configuration"))
         }
 

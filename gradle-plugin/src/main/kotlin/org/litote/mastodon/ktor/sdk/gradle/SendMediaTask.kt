@@ -8,10 +8,10 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
 import org.gradle.work.DisableCachingByDefault
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2Form
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2FormFile
+import org.litote.mastodon.ktor.sdk.api.model.MediaStatus
 import org.litote.mastodon.ktor.sdk.configuration.SdkConfiguration
-import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2Form
-import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2FormFile
-import org.litote.mastodon.ktor.sdk.model.MediaStatus
 import org.litote.mastodon.ktor.sdk.send.SendResult
 import org.litote.mastodon.ktor.sdk.send.SendSdk
 import org.litote.mastodon.ktor.sdk.send.mediaContentType

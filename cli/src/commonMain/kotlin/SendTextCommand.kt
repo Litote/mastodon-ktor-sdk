@@ -8,8 +8,8 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
+import org.litote.mastodon.ktor.sdk.api.model.TextStatus
 import org.litote.mastodon.ktor.sdk.configuration.SdkConfiguration
-import org.litote.mastodon.ktor.sdk.model.TextStatus
 import org.litote.mastodon.ktor.sdk.send.SendResult
 import org.litote.mastodon.ktor.sdk.send.SendSdk
 

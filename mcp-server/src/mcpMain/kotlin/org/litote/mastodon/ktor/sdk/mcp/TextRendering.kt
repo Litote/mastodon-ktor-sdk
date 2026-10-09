@@ -1,8 +1,8 @@
 package org.litote.mastodon.ktor.sdk.mcp
 
-import org.litote.mastodon.ktor.sdk.model.Search
-import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.Status
-import org.litote.mastodon.ktor.sdk.sharedNotificationsapiv1notificationsgetE402785c.model.Notification
+import org.litote.mastodon.ktor.sdk.api.model.Notification
+import org.litote.mastodon.ktor.sdk.api.model.Search
+import org.litote.mastodon.ktor.sdk.api.model.Status
 
 private val htmlLineBreak = Regex("(?i)<br\\s*/?>|</p>\\s*<p[^>]*>")
 private val htmlTag = Regex("<[^>]+>")

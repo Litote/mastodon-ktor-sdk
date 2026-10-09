@@ -17,9 +17,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":sdk:send"))
             implementation(project(":sdk:configuration"))
-            implementation(project(":client:statuses-api-v1-statuses-post-client"))
-            implementation(project(":client:media-api-v2-media-post-client"))
-            implementation(project(":client:shared-accountsapiv1accountsidstatusesget-4016b7e9"))
+            implementation(project(":sdk:api"))
             implementation(libs.kotlinx.io.core)
             implementation(libs.clikt)
         }
@@ -29,12 +27,6 @@ kotlin {
         jvmTest.dependencies {
             implementation(libs.coroutines.test)
         }
-    }
-}
-
-mavenPublishing {
-    pom {
-        description = "Mastodon CLI"
     }
 }
 
