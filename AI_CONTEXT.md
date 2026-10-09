@@ -63,7 +63,7 @@ Maven Central limits files / size / releases per month and per organization. Hen
   (`StatusesClient`, `MediaClient`, `TimelinesClient`, `NotificationsClient`, `SearchClient`), models in `org.litote.mastodon.ktor.sdk.api.model`.
   To use a new operation in an SDK, add its path there.
 - Users generate other operations themselves from the `openapi` artifact (README procedure, `samples/custom-client`).
-  With generator 0.8.0, `allowedPaths` must include `/api/v1/statuses` (its oneOf request/response models are generated even when filtered out).
+  Since generator 0.9.0, oneOf request/response models of filtered-out operations are no longer generated (0.8.0 required keeping `/api/v1/statuses` in `allowedPaths`).
 - Only md5/sha1 checksums, none for `.asc` (`gradle.properties`). No `iosX64` / tvOS / watchOS targets.
 - Release/snapshot workflows publish explicit module lists (Apple job: `:sdk:*` only).
 

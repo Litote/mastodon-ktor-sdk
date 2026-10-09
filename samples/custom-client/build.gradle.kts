@@ -29,9 +29,7 @@ apiClientGenerator {
             // Users resolve the spec from Maven Central instead: org.litote.mastodon.ktor.sdk:openapi:<version>@json
             openApiFile = rootProject.layout.projectDirectory.file("src/main/openapi/mastodon.json")
             basePackage = "org.litote.mastodon.ktor.sdk.sample"
-            // "/api/v1/statuses" must be kept with openapi-ktor-client-generator 0.8.0: its oneOf request and
-            // response models are generated even when the path is filtered out, and need their subtypes.
-            allowedPaths.set(setOf("/api/v1/accounts/{id}", "/api/v1/statuses"))
+            allowedPaths.set(setOf("/api/v1/accounts/{id}"))
             modulesIds.add("UnknownEnumValueModule")
             modulesIds.add("LoggingKotlinModule")
         }
