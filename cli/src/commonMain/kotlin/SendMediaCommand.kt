@@ -10,8 +10,8 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
+import org.litote.mastodon.ktor.sdk.api.model.MediaStatus
 import org.litote.mastodon.ktor.sdk.configuration.SdkConfiguration
-import org.litote.mastodon.ktor.sdk.model.MediaStatus
 import org.litote.mastodon.ktor.sdk.send.SendResult
 import org.litote.mastodon.ktor.sdk.send.SendSdk
 

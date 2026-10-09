@@ -1,6 +1,8 @@
 import groovy.json.JsonSlurper
+import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
 import org.gradle.kotlin.dsl.findByType
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
+import org.gradle.plugins.signing.Sign
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.sonarqube.gradle.SonarExtension
 import java.net.URI
@@ -70,16 +72,29 @@ apiClientGenerator {
     }
 }
 
+// Maven Central limits the number of files published per month, so some modules are not published:
+// - the per-operation clients under client/ only validate the whole OpenAPI spec; published SDKs rely on :sdk:api,
+//   which only contains the operations they use;
+// - cli and mcp-server are applications, distributed as fat jars and native binaries on GitHub releases.
+subprojects {
+    if (path.startsWith(":client:") || path in setOf(":cli", ":mcp-server")) {
+        tasks.withType<AbstractPublishToMaven>().configureEach { enabled = false }
+        tasks.withType<Sign>().configureEach { enabled = false }
+    }
+}
+
 tasks.register("addGeneratedSourcesToGit") {
     group = "openapi"
-    description = "Stages generated API client sources under client/**/build/api-mastodon into git."
+    description = "Stages generated API client sources under client/**/build/api-mastodon and sdk/api/build/api-mastodon into git."
+    val generatedRoots = listOf("client", "sdk/api").map { layout.projectDirectory.dir(it).asFile }
+    val rootDirectory = layout.projectDirectory.asFile
     doLast {
-        val clientDir = layout.projectDirectory.dir("client").asFile
-        clientDir.walkTopDown()
+        generatedRoots
+            .flatMap { it.walkTopDown() }
             .filter { it.isDirectory && it.name == "api-mastodon" && it.parentFile?.name == "build" }
             .forEach { dir ->
                 ProcessBuilder("git", "add", "-f", dir.absolutePath)
-                    .directory(layout.projectDirectory.asFile)
+                    .directory(rootDirectory)
                     .start()
                     .waitFor()
             }

@@ -22,13 +22,13 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
-import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
+import org.litote.mastodon.ktor.sdk.api.client.ClientConfiguration
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2Form
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2FormFile
+import org.litote.mastodon.ktor.sdk.api.model.MediaStatus
+import org.litote.mastodon.ktor.sdk.api.model.StatusVisibilityEnum
+import org.litote.mastodon.ktor.sdk.api.model.TextStatus
 import org.litote.mastodon.ktor.sdk.configuration.SdkConfiguration
-import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2Form
-import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2FormFile
-import org.litote.mastodon.ktor.sdk.model.MediaStatus
-import org.litote.mastodon.ktor.sdk.model.TextStatus
-import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget4016b7e9.model.StatusVisibilityEnum
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -360,7 +360,7 @@ class SendSdkTest {
             val config = ClientConfiguration(baseUrl = "https://mastodon.social/", json = jsonConfig)
             val sdk = SendSdk(config, simulate = true)
             val visibility =
-                org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget4016b7e9.model.StatusVisibilityEnum.PUBLIC
+                org.litote.mastodon.ktor.sdk.api.model.StatusVisibilityEnum.PUBLIC
 
             val result = sdk.sendText(TextStatus(status = "Hi", visibility = visibility))
 

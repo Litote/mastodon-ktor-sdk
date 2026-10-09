@@ -4,8 +4,8 @@ import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
-import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2Form
-import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2FormFile
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2Form
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2FormFile
 import org.litote.mastodon.ktor.sdk.send.mediaContentType
 
 /**

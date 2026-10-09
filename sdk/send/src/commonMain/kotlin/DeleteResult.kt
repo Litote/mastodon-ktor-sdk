@@ -1,12 +1,12 @@
 package org.litote.mastodon.ktor.sdk.send
 
-import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.Status
-import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesIdDelete.client.StatusesApiV1StatusesIdDeleteClient.DeleteStatusResponse
-import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesIdDelete.client.StatusesApiV1StatusesIdDeleteClient.DeleteStatusResponseFailure
-import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesIdDelete.client.StatusesApiV1StatusesIdDeleteClient.DeleteStatusResponseFailure401
-import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesIdDelete.client.StatusesApiV1StatusesIdDeleteClient.DeleteStatusResponseFailure410
-import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesIdDelete.client.StatusesApiV1StatusesIdDeleteClient.DeleteStatusResponseSuccess
-import org.litote.mastodon.ktor.sdk.statusesApiV1StatusesIdDelete.client.StatusesApiV1StatusesIdDeleteClient.DeleteStatusResponseUnknownFailure
+import org.litote.mastodon.ktor.sdk.api.client.StatusesClient.DeleteStatusResponse
+import org.litote.mastodon.ktor.sdk.api.client.StatusesClient.DeleteStatusResponseFailure
+import org.litote.mastodon.ktor.sdk.api.client.StatusesClient.DeleteStatusResponseFailure401
+import org.litote.mastodon.ktor.sdk.api.client.StatusesClient.DeleteStatusResponseFailure410
+import org.litote.mastodon.ktor.sdk.api.client.StatusesClient.DeleteStatusResponseSuccess
+import org.litote.mastodon.ktor.sdk.api.client.StatusesClient.DeleteStatusResponseUnknownFailure
+import org.litote.mastodon.ktor.sdk.api.model.Status
 
 /**
  * Sealed result type returned by [SendSdk.deleteStatus].

@@ -4,7 +4,7 @@ import kotlin.String
 import kotlin.collections.List
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.litote.mastodon.ktor.sdk.sharedAppsapiv1appspostDf6bf73e.model.OAuthScopes
+import org.litote.mastodon.ktor.sdk.sharedAppsapiv1appspostDf6bf73e.model.OAuthScope
 
 @Serializable
 public data class Application(
@@ -12,6 +12,6 @@ public data class Application(
   public val name: String,
   @SerialName("redirect_uris")
   public val redirectUris: List<String>? = null,
-  public val scopes: OAuthScopes? = null,
+  public val scopes: List<OAuthScope>? = null,
   public val website: String? = null,
 )

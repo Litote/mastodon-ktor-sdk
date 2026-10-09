@@ -11,11 +11,14 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.intOrNull
-import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2Form
-import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2FormFile
-import org.litote.mastodon.ktor.sdk.model.MediaStatus
-import org.litote.mastodon.ktor.sdk.model.Search
-import org.litote.mastodon.ktor.sdk.model.TextStatus
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2Form
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2FormFile
+import org.litote.mastodon.ktor.sdk.api.model.MediaStatus
+import org.litote.mastodon.ktor.sdk.api.model.Notification
+import org.litote.mastodon.ktor.sdk.api.model.Search
+import org.litote.mastodon.ktor.sdk.api.model.Status
+import org.litote.mastodon.ktor.sdk.api.model.StatusVisibilityEnum
+import org.litote.mastodon.ktor.sdk.api.model.TextStatus
 import org.litote.mastodon.ktor.sdk.read.DEFAULT_READ_LIMIT
 import org.litote.mastodon.ktor.sdk.read.MAX_READ_LIMIT
 import org.litote.mastodon.ktor.sdk.read.ReadResult
@@ -23,9 +26,6 @@ import org.litote.mastodon.ktor.sdk.read.SearchType
 import org.litote.mastodon.ktor.sdk.send.DeleteResult
 import org.litote.mastodon.ktor.sdk.send.SendResult
 import org.litote.mastodon.ktor.sdk.send.mediaContentType
-import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget4016b7e9.model.StatusVisibilityEnum
-import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.Status
-import org.litote.mastodon.ktor.sdk.sharedNotificationsapiv1notificationsgetE402785c.model.Notification
 
 internal const val ARG_TEXT = "text"
 internal const val ARG_VISIBILITY = "visibility"

@@ -1,31 +1,31 @@
 package org.litote.mastodon.ktor.sdk.read
 
-import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
+import org.litote.mastodon.ktor.sdk.api.client.ClientConfiguration
+import org.litote.mastodon.ktor.sdk.api.client.NotificationsClient
+import org.litote.mastodon.ktor.sdk.api.client.NotificationsClient.GetNotificationsResponseFailure
+import org.litote.mastodon.ktor.sdk.api.client.NotificationsClient.GetNotificationsResponseFailure401
+import org.litote.mastodon.ktor.sdk.api.client.NotificationsClient.GetNotificationsResponseFailure410
+import org.litote.mastodon.ktor.sdk.api.client.NotificationsClient.GetNotificationsResponseSuccess
+import org.litote.mastodon.ktor.sdk.api.client.NotificationsClient.GetNotificationsResponseUnknownFailure
+import org.litote.mastodon.ktor.sdk.api.client.SearchClient
+import org.litote.mastodon.ktor.sdk.api.client.SearchClient.GetSearchV2ResponseFailure
+import org.litote.mastodon.ktor.sdk.api.client.SearchClient.GetSearchV2ResponseFailure401
+import org.litote.mastodon.ktor.sdk.api.client.SearchClient.GetSearchV2ResponseFailure410
+import org.litote.mastodon.ktor.sdk.api.client.SearchClient.GetSearchV2ResponseSuccess
+import org.litote.mastodon.ktor.sdk.api.client.SearchClient.GetSearchV2ResponseUnknownFailure
+import org.litote.mastodon.ktor.sdk.api.client.TimelinesClient
+import org.litote.mastodon.ktor.sdk.api.client.TimelinesClient.GetTimelineHomeResponseFailure
+import org.litote.mastodon.ktor.sdk.api.client.TimelinesClient.GetTimelineHomeResponseFailure401
+import org.litote.mastodon.ktor.sdk.api.client.TimelinesClient.GetTimelineHomeResponseFailure410
+import org.litote.mastodon.ktor.sdk.api.client.TimelinesClient.GetTimelineHomeResponseSuccess
+import org.litote.mastodon.ktor.sdk.api.client.TimelinesClient.GetTimelineHomeResponseSuccess200
+import org.litote.mastodon.ktor.sdk.api.client.TimelinesClient.GetTimelineHomeResponseUnknownFailure
+import org.litote.mastodon.ktor.sdk.api.model.Error
+import org.litote.mastodon.ktor.sdk.api.model.Notification
+import org.litote.mastodon.ktor.sdk.api.model.Search
+import org.litote.mastodon.ktor.sdk.api.model.Status
 import org.litote.mastodon.ktor.sdk.configuration.SdkConfiguration
 import org.litote.mastodon.ktor.sdk.configuration.toClientConfiguration
-import org.litote.mastodon.ktor.sdk.model.Search
-import org.litote.mastodon.ktor.sdk.notificationsApiV1NotificationsGet.client.NotificationsApiV1NotificationsGetClient
-import org.litote.mastodon.ktor.sdk.notificationsApiV1NotificationsGet.client.NotificationsApiV1NotificationsGetClient.GetNotificationsResponseFailure
-import org.litote.mastodon.ktor.sdk.notificationsApiV1NotificationsGet.client.NotificationsApiV1NotificationsGetClient.GetNotificationsResponseFailure401
-import org.litote.mastodon.ktor.sdk.notificationsApiV1NotificationsGet.client.NotificationsApiV1NotificationsGetClient.GetNotificationsResponseFailure410
-import org.litote.mastodon.ktor.sdk.notificationsApiV1NotificationsGet.client.NotificationsApiV1NotificationsGetClient.GetNotificationsResponseSuccess
-import org.litote.mastodon.ktor.sdk.notificationsApiV1NotificationsGet.client.NotificationsApiV1NotificationsGetClient.GetNotificationsResponseUnknownFailure
-import org.litote.mastodon.ktor.sdk.searchApiV2SearchGet.client.SearchApiV2SearchGetClient
-import org.litote.mastodon.ktor.sdk.searchApiV2SearchGet.client.SearchApiV2SearchGetClient.GetSearchV2ResponseFailure
-import org.litote.mastodon.ktor.sdk.searchApiV2SearchGet.client.SearchApiV2SearchGetClient.GetSearchV2ResponseFailure401
-import org.litote.mastodon.ktor.sdk.searchApiV2SearchGet.client.SearchApiV2SearchGetClient.GetSearchV2ResponseFailure410
-import org.litote.mastodon.ktor.sdk.searchApiV2SearchGet.client.SearchApiV2SearchGetClient.GetSearchV2ResponseSuccess
-import org.litote.mastodon.ktor.sdk.searchApiV2SearchGet.client.SearchApiV2SearchGetClient.GetSearchV2ResponseUnknownFailure
-import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
-import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.Status
-import org.litote.mastodon.ktor.sdk.sharedNotificationsapiv1notificationsgetE402785c.model.Notification
-import org.litote.mastodon.ktor.sdk.timelinesApiV1TimelinesHomeGet.client.TimelinesApiV1TimelinesHomeGetClient
-import org.litote.mastodon.ktor.sdk.timelinesApiV1TimelinesHomeGet.client.TimelinesApiV1TimelinesHomeGetClient.GetTimelineHomeResponseFailure
-import org.litote.mastodon.ktor.sdk.timelinesApiV1TimelinesHomeGet.client.TimelinesApiV1TimelinesHomeGetClient.GetTimelineHomeResponseFailure401
-import org.litote.mastodon.ktor.sdk.timelinesApiV1TimelinesHomeGet.client.TimelinesApiV1TimelinesHomeGetClient.GetTimelineHomeResponseFailure410
-import org.litote.mastodon.ktor.sdk.timelinesApiV1TimelinesHomeGet.client.TimelinesApiV1TimelinesHomeGetClient.GetTimelineHomeResponseSuccess
-import org.litote.mastodon.ktor.sdk.timelinesApiV1TimelinesHomeGet.client.TimelinesApiV1TimelinesHomeGetClient.GetTimelineHomeResponseSuccess200
-import org.litote.mastodon.ktor.sdk.timelinesApiV1TimelinesHomeGet.client.TimelinesApiV1TimelinesHomeGetClient.GetTimelineHomeResponseUnknownFailure
 
 /** Maximum number of items that can be requested in a single read call. */
 public const val MAX_READ_LIMIT: Int = 40
@@ -98,7 +98,7 @@ public class ReadSdk public constructor(
     public suspend fun homeTimeline(limit: Int = DEFAULT_READ_LIMIT): ReadResult<List<Status>> {
         requireLimit(limit)
         val prefix = "Failed to read home timeline"
-        return when (val response = TimelinesApiV1TimelinesHomeGetClient(clientConfig).getTimelineHome(limit = limit.toLong())) {
+        return when (val response = TimelinesClient(clientConfig).getTimelineHome(limit = limit.toLong())) {
             is GetTimelineHomeResponseSuccess200 -> ReadResult.Success(response.body)
             is GetTimelineHomeResponseSuccess -> failure(prefix, "timeline is being regenerated, try again later")
             is GetTimelineHomeResponseFailure401 -> failure(prefix, response.body.describe())
@@ -117,7 +117,7 @@ public class ReadSdk public constructor(
     public suspend fun notifications(limit: Int = DEFAULT_READ_LIMIT): ReadResult<List<Notification>> {
         requireLimit(limit)
         val prefix = "Failed to read notifications"
-        return when (val response = NotificationsApiV1NotificationsGetClient(clientConfig).getNotifications(limit = limit.toLong())) {
+        return when (val response = NotificationsClient(clientConfig).getNotifications(limit = limit.toLong())) {
             is GetNotificationsResponseSuccess -> ReadResult.Success(response.body)
             is GetNotificationsResponseFailure401 -> failure(prefix, response.body.describe())
             is GetNotificationsResponseFailure -> failure(prefix, response.body.error)
@@ -143,7 +143,7 @@ public class ReadSdk public constructor(
         requireLimit(limit)
         val prefix = "Failed to search"
         val response =
-            SearchApiV2SearchGetClient(clientConfig).getSearchV2(
+            SearchClient(clientConfig).getSearchV2(
                 q = query,
                 limit = limit.toLong(),
                 type = type?.apiValue,

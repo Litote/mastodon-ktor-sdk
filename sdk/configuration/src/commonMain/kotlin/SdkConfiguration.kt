@@ -1,7 +1,7 @@
 package org.litote.mastodon.ktor.sdk.configuration
 
 import kotlinx.serialization.json.Json
-import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
+import org.litote.mastodon.ktor.sdk.api.client.ClientConfiguration
 
 /**
  * Configuration required to connect to a Mastodon server and post statuses.

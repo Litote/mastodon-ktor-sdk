@@ -21,45 +21,79 @@ Kotlin Multiplatform SDK for the [Mastodon API](https://docs.joinmastodon.org/me
 ## Features
 
 - Ktor and kotlinx.serialization dependencies — fully KMP compatible
-- Granularity at the operation level: each API operation is a separate dependency/Gradle module
+- Generate only the API operations you need from the published OpenAPI spec
 - *alpha stage* SDK for operation composition (e.g. upload an image and post a media status)
 - *alpha stage* Gradle plugin for usage with Gradle projects
 - *alpha stage* CLI tools for command-line usage
 - *alpha stage* MCP server to expose Mastodon tools to AI assistants (Claude Desktop, Claude Code, etc.)
 
-## Using the generated clients
+## Getting started
 
-Each API operation has its own module in the [client](client) directory.
-Add only what you need:
+See [sdk/README.md](sdk/README.md).
+
+## Advanced Usage: generated clients
+
+### Clients used by the SDK
+
+The `api` artifact contains the generated clients and models of the operations used by the SDKs
+(statuses, media, home timeline, notifications, search), in the `org.litote.mastodon.ktor.sdk.api` package:
 
 ```kotlin
-// POST /api/v1/statuses
-implementation("org.litote.mastodon.ktor.sdk:statuses-api-v1-statuses-post-client:<version>")
-
-// POST /api/v2/media
-implementation("org.litote.mastodon.ktor.sdk:media-api-v2-media-post-client:<version>")
+implementation("org.litote.mastodon.ktor.sdk:api:<version>")
 ```
-
-Configure a `ClientConfiguration` with your server and access token:
 
 ```kotlin
 val config = ClientConfiguration(
     baseUrl = "https://mastodon.example.com/",
-    httpClientConfig = {
-        install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
-        defaultRequest {
-            header("Authorization", "Bearer $accessToken")
-        }
-    }
+    accessToken = accessToken,
 )
 
-val client = StatusesApiV1StatusesPostClient(config)
+val client = StatusesClient(config)
 val response = client.createStatus(TextStatus(status = "Hello Mastodon!"))
 ```
 
-- All operations available in [client](client) directory
-- These clients are generated with [OpenAPI Ktor Client Generator](https://github.com/Litote/openapi-ktor-client-generator?tab=readme-ov-file#openapi-ktor-client-generator)
+### Generate only the clients you need
 
+The Mastodon OpenAPI spec maintained by this project is published as `org.litote.mastodon.ktor.sdk:openapi`.
+Use [OpenAPI Ktor Client Generator](https://github.com/Litote/openapi-ktor-client-generator?tab=readme-ov-file#openapi-ktor-client-generator)
+to generate, in your own build, only the operations you use:
+
+```kotlin
+// build.gradle.kts
+plugins {
+    kotlin("multiplatform") // or kotlin("jvm")
+    kotlin("plugin.serialization")
+    id("org.litote.openapi.ktor.client.generator.gradle") version "<generator version>"
+}
+
+val mastodonSpec by configurations.creating
+
+dependencies {
+    mastodonSpec("org.litote.mastodon.ktor.sdk:openapi:<version>@json")
+}
+
+apiClientGenerator {
+    generators {
+        create("mastodon") {
+            openApiFile = layout.file(provider { mastodonSpec.singleFile })
+            // Use your own package: the SDK artifacts already contain org.litote.mastodon.ktor.sdk.api.
+            basePackage = "com.example.mastodon"
+            allowedPaths.set(
+                setOf(
+                    "/api/v1/accounts/{id}"
+                ),
+            )
+        }
+    }
+}
+```
+
+The generated code needs `kotlinx-serialization-json`, `kotlinx-coroutines-core`, `kotlin-logging` and the Ktor client
+(`core`, `cio`, `content-negotiation`, `serialization-kotlinx-json`, `logging`).
+[samples/custom-client](samples/custom-client) is a working example.
+
+Generated types are not interchangeable with the `api` artifact ones: use the SDKs or your own clients for a given
+operation, not both.
 
 ## *alpha stage* SDK
 

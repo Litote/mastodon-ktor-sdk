@@ -4,7 +4,7 @@ import kotlin.String
 import kotlin.collections.List
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.litote.mastodon.ktor.sdk.sharedAppsapiv1appspostDf6bf73e.model.OAuthScopes
+import org.litote.mastodon.ktor.sdk.sharedAppsapiv1appspostDf6bf73e.model.OAuthScope
 
 @Serializable
 public data class DiscoverOauthServerConfigurationResponse(
@@ -24,7 +24,7 @@ public data class DiscoverOauthServerConfigurationResponse(
   @SerialName("revocation_endpoint")
   public val revocationEndpoint: String,
   @SerialName("scopes_supported")
-  public val scopesSupported: OAuthScopes,
+  public val scopesSupported: List<OAuthScope>,
   @SerialName("service_documentation")
   public val serviceDocumentation: String,
   @SerialName("token_endpoint")

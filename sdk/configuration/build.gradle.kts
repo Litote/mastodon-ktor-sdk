@@ -5,7 +5,8 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":client:shared"))
+            // ClientConfiguration is part of the public API (toClientConfiguration()).
+            api(project(":sdk:api"))
         }
     }
 }

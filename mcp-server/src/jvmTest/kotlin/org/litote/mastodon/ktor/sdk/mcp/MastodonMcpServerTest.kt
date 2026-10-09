@@ -14,9 +14,9 @@ import io.modelcontextprotocol.kotlin.sdk.types.TextContent
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
-import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
+import org.litote.mastodon.ktor.sdk.api.client.ClientConfiguration
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient
 import org.litote.mastodon.ktor.sdk.configuration.SdkConfiguration
-import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient
 import org.litote.mastodon.ktor.sdk.send.SendResult
 import org.litote.mastodon.ktor.sdk.send.SendSdk
 import org.litote.mastodon.ktor.sdk.send.SimulateInfo
@@ -220,9 +220,9 @@ class MastodonMcpServerTest {
         runTest {
             val args = mapOf("text" to JsonPrimitive("Hello!"))
             val fakeForm =
-                MediaApiV2MediaPostClient.CreateMediaV2Form(
+                MediaClient.CreateMediaV2Form(
                     file =
-                        MediaApiV2MediaPostClient.CreateMediaV2FormFile(
+                        MediaClient.CreateMediaV2FormFile(
                             bytes = ByteArray(0),
                             contentType = ContentType.Image.JPEG,
                         ),
@@ -230,7 +230,7 @@ class MastodonMcpServerTest {
 
             val result =
                 handleSendTextStatus(args) { _ ->
-                    SendResult.UploadFailure(fakeForm, MediaApiV2MediaPostClient.CreateMediaV2ResponseFailure())
+                    SendResult.UploadFailure(fakeForm, MediaClient.CreateMediaV2ResponseFailure())
                 }
 
             assertTrue(result.isError ?: false)
@@ -328,9 +328,9 @@ class MastodonMcpServerTest {
         runTest {
             val args = mapOf("text" to JsonPrimitive("Hello!"))
             val fakeForm =
-                MediaApiV2MediaPostClient.CreateMediaV2Form(
+                MediaClient.CreateMediaV2Form(
                     file =
-                        MediaApiV2MediaPostClient.CreateMediaV2FormFile(
+                        MediaClient.CreateMediaV2FormFile(
                             bytes = ByteArray(0),
                             contentType = ContentType.Image.JPEG,
                         ),
@@ -338,7 +338,7 @@ class MastodonMcpServerTest {
 
             val result =
                 handleSendTextStatus(args) { _ ->
-                    SendResult.UploadFailure(fakeForm, MediaApiV2MediaPostClient.CreateMediaV2ResponseFailure())
+                    SendResult.UploadFailure(fakeForm, MediaClient.CreateMediaV2ResponseFailure())
                 }
 
             val text = result.content.filterIsInstance<TextContent>().joinToString { it.text }

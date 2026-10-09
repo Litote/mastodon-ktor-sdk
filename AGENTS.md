@@ -19,6 +19,7 @@
 | **Scope**        | Mass refactors, rename symbols unnecessarily, formatting-only changes            |
 | **Deploy**       | `./gradlew deploy`, `./gradlew deployPlugins`, triggering releases manually      |
 | **Generated**    | Manually edit any file under `client/` — those are generated from the OpenAPI spec |
+| **Publishing**   | Make a published module depend on `:client:*` (not published) — use `:sdk:api`; add published modules or Kotlin targets without checking Maven Central limits (see `CONTRIBUTING.md`) |
 | **Commit**       | NEVER commit changes if you are not in a Pull Request Context                    |
 
 ### ALWAYS Do
@@ -70,7 +71,7 @@ A change is complete when:
 - [ ] Type safety is preserved
 - [ ] Architecture boundaries are respected
 - [ ] Tests are added for new logic
-- [ ] Hand-written modules only — generated files under `client/` are not manually modified
+- [ ] Hand-written modules only — generated files under `client/` and `sdk/api/build/` are not manually modified
 
 ---
 

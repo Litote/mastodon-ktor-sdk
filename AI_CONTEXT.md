@@ -19,11 +19,14 @@ Kotlin Multiplatform SDK for the [Mastodon API](https://docs.joinmastodon.org/me
 mastodon-ktor-sdk/
 ├── src/main/openapi/
 │   └── mastodon.json          → Mastodon OpenAPI spec (source of truth for client/)
-├── client/                    → Generated API clients (do NOT edit manually)
+├── client/                    → Generated API clients (do NOT edit manually) — NOT published
 │   ├── shared/                → Shared ClientConfiguration (generated)
 │   ├── shared-*/              → Shared model groups (generated)
 │   └── *-client/              → One module per API operation (generated)
+├── openapi/                   → Publishes mastodon.json (artifact `openapi`, `@json` notation)
+├── samples/custom-client/     → Not published — example/test of user-side filtered generation
 ├── sdk/
+│   ├── api/                   → Generated clients used by the SDKs (allowedPaths filter, package `org.litote.mastodon.ktor.sdk.api`)
 │   ├── configuration/         → SdkConfiguration + toClientConfiguration()
 │   ├── send/                  → SendSdk — high-level SDK to post text and media statuses, delete statuses
 │   └── read/                  → ReadSdk — home timeline, notifications, search
@@ -45,9 +48,24 @@ mastodon-ktor-sdk/
 | `project-convention` | Sets `group` and `version` from `gradle.properties` |
 | `signing-convention` | GPG signing via `gpg` command |
 
-All modules (generated and hand-written) apply `kotlin-convention`, except `gradle-plugin` which uses `kotlin("jvm")` directly (Gradle plugin constraints).
+All modules (generated and hand-written) apply `kotlin-convention`, except `gradle-plugin` which uses `kotlin("jvm")` directly (Gradle plugin constraints), `openapi` (`java-library`, publishes the spec) and `samples/*` (`kotlin("jvm")`, not published).
 
 ---
+
+## Publishing (Maven Central limits)
+
+Maven Central limits files / size / releases per month and per organization. Hence:
+
+- `:client:*` modules are not published (publish + sign tasks disabled in root `build.gradle.kts`); they only validate the spec.
+  Published modules must depend on `:sdk:api`, never on `:client:*`.
+- `:cli` and `:mcp-server` are not published to Maven Central either (same mechanism) — GitHub releases only (fat jars + native binaries).
+- `:sdk:api` is generated (single module, no split) with `allowedPaths` = operations used by the SDKs: clients are per tag
+  (`StatusesClient`, `MediaClient`, `TimelinesClient`, `NotificationsClient`, `SearchClient`), models in `org.litote.mastodon.ktor.sdk.api.model`.
+  To use a new operation in an SDK, add its path there.
+- Users generate other operations themselves from the `openapi` artifact (README procedure, `samples/custom-client`).
+  Since generator 0.9.0, oneOf request/response models of filtered-out operations are no longer generated (0.8.0 required keeping `/api/v1/statuses` in `allowedPaths`).
+- Only md5/sha1 checksums, none for `.asc` (`gradle.properties`). No `iosX64` / tvOS / watchOS targets.
+- Release/snapshot workflows publish explicit module lists (Apple job: `:sdk:*` only).
 
 ## Hand-written Modules
 

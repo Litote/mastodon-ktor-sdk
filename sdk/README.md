@@ -7,6 +7,7 @@ Both `sendText` and `sendMedia` are suspend functions — call them from a corou
 
 | Module | Description |
 |--------|-------------|
+| `sdk:api` | Generated clients and models used by the SDKs (`org.litote.mastodon.ktor.sdk.api.*`) |
 | `sdk:configuration` | `SdkConfiguration` — shared auth/server config |
 | `sdk:send` | `SendSdk` — post text and media statuses, delete statuses |
 | `sdk:read` | `ReadSdk` — read the home timeline and notifications, search |
@@ -47,7 +48,7 @@ val sdk = SendSdk(config)
 ### 3. Post a text status
 
 ```kotlin
-import org.litote.mastodon.ktor.sdk.model.TextStatus
+import org.litote.mastodon.ktor.sdk.api.model.TextStatus
 import org.litote.mastodon.ktor.sdk.send.SendResult
 
 val result = sdk.sendText(TextStatus(status = "Hello from Kotlin!"))
@@ -65,9 +66,9 @@ when (result) {
 
 ```kotlin
 import io.ktor.http.ContentType
-import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2Form
-import org.litote.mastodon.ktor.sdk.mediaApiV2MediaPost.client.MediaApiV2MediaPostClient.CreateMediaV2FormFile
-import org.litote.mastodon.ktor.sdk.model.MediaStatus
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2Form
+import org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2FormFile
+import org.litote.mastodon.ktor.sdk.api.model.MediaStatus
 import org.litote.mastodon.ktor.sdk.send.SendResult
 
 val attachment = CreateMediaV2Form(

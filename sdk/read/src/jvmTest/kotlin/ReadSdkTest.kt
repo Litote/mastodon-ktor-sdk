@@ -14,7 +14,7 @@ import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
-import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
+import org.litote.mastodon.ktor.sdk.api.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.configuration.SdkConfiguration
 import kotlin.test.Test
 import kotlin.test.assertEquals
