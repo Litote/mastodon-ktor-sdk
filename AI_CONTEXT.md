@@ -30,7 +30,7 @@ mastodon-ktor-sdk/
 │   ├── configuration/         → SdkConfiguration + toClientConfiguration()
 │   ├── send/                  → SendSdk — high-level SDK to post text and media statuses, delete statuses
 │   └── read/                  → ReadSdk — home timeline, notifications, search
-├── cli/                       → Command-line tools (SendText, SendMedia) — JVM entry points
+├── cli/                       → `mastodon-cli` command (send-text, send-media) — fat jar + native binaries
 ├── mcp-server/                → MCP server exposing Mastodon tools via STDIO transport
 ├── gradle-plugin/             → Gradle plugin (sendText / sendMedia tasks)
 ├── convention/                → Gradle convention plugins
@@ -63,7 +63,7 @@ Maven Central limits files / size / releases per month and per organization. Hen
   (`StatusesClient`, `MediaClient`, `TimelinesClient`, `NotificationsClient`, `SearchClient`), models in `org.litote.mastodon.ktor.sdk.api.model`.
   To use a new operation in an SDK, add its path there.
 - Users generate other operations themselves from the `openapi` artifact (README procedure, `samples/custom-client`).
-  Since generator 0.9.0, oneOf request/response models of filtered-out operations are no longer generated (0.8.0 required keeping `/api/v1/statuses` in `allowedPaths`).
+  oneOf request/response models of filtered-out operations are not generated, so `allowedPaths` lists only the operations the SDKs call.
 - Only md5/sha1 checksums, none for `.asc` (`gradle.properties`). No `iosX64` / tvOS / watchOS targets.
 - Release/snapshot workflows publish explicit module lists (Apple job: `:sdk:*` only).
 
@@ -84,7 +84,7 @@ Returns a sealed `SendResult` (`Success`, `PostFailure`, `UploadFailure`, `Media
 
 `SdkConfiguration.visibility` / `language` are applied by `SendSdk` itself (`defaultVisibility` / `defaultLanguage` constructor params) to statuses that do not set their own value — callers must not copy them into the status. Unknown visibility → `null` (server account default).
 
-`sendMedia` waits for asynchronous media processing: when `POST /api/v2/media` returns an attachment with `url == null`, it polls `GET /api/v1/media/{id}` (`media-api-v1-media-id-get-client`) every `mediaPollInterval` (default 1s) until 200, within `mediaProcessingTimeout` (default 60s) using `withTimeoutOrNull`. Any other response or timeout → `MediaProcessingFailure(mediaId, response?)` (`null` = timeout) and the status is not posted. Tests driving this use a `MockEngine` whose `dispatcher` is a `StandardTestDispatcher(testScheduler)` so delays and timeouts run in virtual time.
+`sendMedia` waits for asynchronous media processing: when `POST /api/v2/media` returns an attachment with `url == null`, it polls `GET /api/v1/media/{id}` (`MediaClient` from `:sdk:api`) every `mediaPollInterval` (default 1s) until 200, within `mediaProcessingTimeout` (default 60s) using `withTimeoutOrNull`. Any other response or timeout → `MediaProcessingFailure(mediaId, response?)` (`null` = timeout) and the status is not posted. Tests driving this use a `MockEngine` whose `dispatcher` is a `StandardTestDispatcher(testScheduler)` so delays and timeouts run in virtual time.
 
 `deleteStatus(id)` returns a sealed `DeleteResult` (`Success`, `Failure` with `errorMessage`, `Simulated`). `mediaContentType(fileName)` is the shared extension → MIME mapping used by the CLI, the Gradle plugin and the MCP server.
 
@@ -98,14 +98,13 @@ Returns a sealed `ReadResult<T>` (`Success(value)`, `Failure(errorMessage)`). A 
 
 ### `cli`
 
-JVM entry points that wrap `SendSdk`:
-- `SendTextMain` — posts a plain text status
-- `SendMediaMain` — posts a status with up to 4 media attachments
+Clikt command `mastodon-cli` (`MastodonCli`) wrapping `SendSdk`, with subcommands:
+- `send-text` — posts a plain text status
+- `send-media` — posts a status with up to 4 media attachments
 
-```bash
-./gradlew :cli:jvmRun -PmainClass=org.litote.mastodon.ktor.sdk.send.SendTextMainKt \
-  --args="--server mastodon.example.com --token <token> <text>"
-```
+Options: `--server`, `--token` (required), `--visibility`, `--language`, `--simulate`.
+Distributed as a fat jar (`shadowJar`, `Main-Class org.litote.mastodon.ktor.sdk.cli.MainKt`) and native
+`mastodon-cli` binaries (linuxX64, linuxArm64, macosArm64, mingwX64).
 
 ### `mcp-server`
 
@@ -115,7 +114,7 @@ MCP (Model Context Protocol) server exposing Mastodon operations as MCP tools, u
 - **Tools exposed:** `send_text_status`, `send_media_status` (local files, 1–4), `delete_status`, `get_home_timeline`, `get_notifications`, `search`. Registration is in `MastodonMcpServer.kt`; each tool delegates to an `internal suspend fun handleX(args, fn)` in `ToolHandlers.kt` (testable without transport); plain-text rendering of statuses/notifications/search (HTML → text) is in `TextRendering.kt`. Read tools ignore simulate mode.
 - **Distribution:** fat-jar (JVM, universal) via `shadowJar` + native binaries (linuxX64, linuxArm64, macosArm64, mingwX64)
 - **Simulate mode:** set `MASTODON_SIMULATE=true` env var (or `SdkConfiguration.simulate = true`) to return `SendResult.Simulated` without calling the server. Each caller renders the `SimulateInfo` with its own format (`[simulate] ...` lines).
-- **Source sets:** custom intermediate sets required because MCP SDK server does not publish tvOS/watchOS targets, and because `ssize_t` width differs between Unix (64-bit) and Windows (32-bit):
+- **Source sets:** custom intermediate sets: `mcpMain` scopes the MCP SDK dependency to the server targets (JVM and desktop native), and `ssize_t` width differs between Unix (64-bit) and Windows (32-bit):
   - `mcpMain` (depends on `commonMain`) — server logic, MCP SDK dependency
   - `serverNativeMain` (depends on `mcpMain`) — `main()` entry point + `expect fun nativeStdinSource/Sink()`
   - `serverUnixMain` (depends on `serverNativeMain`) — `actual` POSIX impls for linuxX64, linuxArm64, macosArm64

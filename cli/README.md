@@ -40,13 +40,23 @@ java -jar mastodon-cli-<version>.jar send-text \
 
 ---
 
-Both commands are also runnable via Gradle.
+## Building from source
 
-## SendText — post a text status
+```bash
+# Fat JAR → cli/build/libs/mastodon-cli-<version>.jar
+./gradlew :cli:shadowJar
+java -jar cli/build/libs/mastodon-cli-<version>.jar send-text --server mastodon.social --token <token> "Hello!"
+
+# Native binary (Linux x64) → cli/build/bin/linuxX64/releaseExecutable/mastodon-cli.kexe
+./gradlew :cli:linkReleaseExecutableLinuxX64
+```
+
+The examples below use `mastodon-cli` for any of these distributions.
+
+## send-text — post a text status
 
 ```
-./gradlew :cli:jvmRun -PmainClass=org.litote.mastodon.ktor.sdk.send.SendTextMainKt \
-  --args="--server mastodon.example.com --token <token> [--visibility unlisted] [--language en] <status text...>"
+mastodon-cli send-text --server mastodon.example.com --token <token> [--visibility unlisted] [--language en] [--simulate] <status text...>
 ```
 
 | Option | Default | Description |
@@ -60,20 +70,19 @@ Both commands are also runnable via Gradle.
 Example:
 
 ```
---args="--server mastodon.social --token xxxx --visibility public Hello from Kotlin!"
+mastodon-cli send-text --server mastodon.social --token xxxx --visibility public Hello from Kotlin!
 ```
 
 Simulate (no network call):
 
 ```
---args="--server mastodon.social --token xxxx --simulate Hello from Kotlin!"
+mastodon-cli send-text --server mastodon.social --token xxxx --simulate Hello from Kotlin!
 ```
 
-## SendMedia — post a status with media attachments
+## send-media — post a status with media attachments
 
 ```
-./gradlew :cli:jvmRun -PmainClass=org.litote.mastodon.ktor.sdk.send.SendMediaMainKt \
-  --args="--server mastodon.example.com --token <token> [--visibility unlisted] [--language en] <status> <file1> [desc1] [<file2> [desc2 [<file3> [desc3 [<file4> [desc4]]]]]]"
+mastodon-cli send-media --server mastodon.example.com --token <token> [--visibility unlisted] [--language en] [--simulate] <status> <file1> [desc1] [<file2> [desc2 [<file3> [desc3 [<file4> [desc4]]]]]]
 ```
 
 Supports up to 4 media attachments. Each file can optionally be followed by an alt-text description. File vs. description is detected automatically: if the next argument is a readable file it is treated as the next media file, otherwise as a description.
@@ -91,11 +100,11 @@ Supported formats: `jpg`, `jpeg`, `png`, `gif`, `webp`, `mp4`, `mov`.
 Example:
 
 ```
---args="--server mastodon.social --token xxxx 'My caption' photo1.jpg 'Alt text 1' photo2.png"
+mastodon-cli send-media --server mastodon.social --token xxxx 'My caption' photo1.jpg 'Alt text 1' photo2.png
 ```
 
 Simulate (no network call, shows attachment paths, alt texts and file sizes):
 
 ```
---args="--server mastodon.social --token xxxx --simulate 'My caption' photo1.jpg 'Alt text 1'"
+mastodon-cli send-media --server mastodon.social --token xxxx --simulate 'My caption' photo1.jpg 'Alt text 1'
 ```

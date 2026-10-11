@@ -2,8 +2,8 @@
 
 > **Purpose**: Instructions for AI agents working on this codebase.
 > For installation, configuration, and usage, see [`README.md`](README.md).
-> For contributing guidelines and project architecture, see (MANDATORY!) [`CONTRIBUTING.md`](CONTRIBUTING.md).
-> For a project analysis, see (MANDATORY!) [`AI_CONTEXT.md`](AI_CONTEXT.md).
+> For contributing guidelines and project architecture, see [`CONTRIBUTING.md`](CONTRIBUTING.md) — read it before changing modules, publishing or build configuration.
+> The project analysis is in [`AI_CONTEXT.md`](AI_CONTEXT.md) (imported by `CLAUDE.md`).
 
 ---
 
@@ -17,16 +17,16 @@
 | **Dependencies** | Add/upgrade dependencies without explicit request, change version catalogs       |
 | **Security**     | Log secrets/API keys, expose environment variables, commit credentials           |
 | **Scope**        | Mass refactors, rename symbols unnecessarily, formatting-only changes            |
-| **Deploy**       | `./gradlew deploy`, `./gradlew deployPlugins`, triggering releases manually      |
+| **Deploy**       | Run publishing tasks (`publishAndReleaseToMavenCentral`, `publishPlugins`, `publish*`) or trigger releases manually — releases go through release-please CI |
 | **Generated**    | Manually edit any file under `client/` — those are generated from the OpenAPI spec |
 | **Publishing**   | Make a published module depend on `:client:*` (not published) — use `:sdk:api`; add published modules or Kotlin targets without checking Maven Central limits (see `CONTRIBUTING.md`) |
-| **Commit**       | NEVER commit changes if you are not in a Pull Request Context                    |
+| **Commit**       | Commit changes outside a Pull Request context                                    |
 
 ### ALWAYS Do
 
 | Category                   | Required Actions                                                                                          |
 |----------------------------|-----------------------------------------------------------------------------------------------------------|
-| **Validation**             | Run `./gradlew formatKotlin && ./gradlew check` after every iteration                                     |
+| **Validation**             | Run `./gradlew formatKotlin && ./gradlew check` after every iteration (`.md`-only changes excepted)       |
 | **Quality Gate**           | Run `./gradlew check jacocoAggregatedReport sonar sonarCheck` before finalizing **every** task — **`sonarCheck` must pass (0 issues, 0 hotspots, gate OK)**. Requires `systemProp.sonar.token` in `~/.gradle/gradle.properties`. If the token is unavailable locally, note it explicitly and let CI validate. This includes `.github/workflows/` YAML files (analysed by Sonar for security). `.md`-only changes do **not** require Sonar. |
 | **Testing**                | When you try to fix a bug, start by adding the test and THEN fix the bug. Add tests for all logic changes |
 | **Imports**                | Use single imports only                                                                                   |
@@ -63,9 +63,7 @@ fun `GIVEN precondition WHEN action THEN expected result`() {
 
 A change is complete when:
 
-- [ ] `./gradlew formatKotlin` passes
-- [ ] `./gradlew check` passes (compiles without warnings, all tests pass)
-- [ ] `./gradlew check jacocoAggregatedReport sonar sonarCheck` passes — **`sonarCheck` must exit with BUILD SUCCESSFUL (0 issues, 0 hotspots, gate OK)**
+- [ ] Validation and Quality Gate (see *ALWAYS Do*) pass, with the exceptions stated there — `check` compiles without warnings and all tests pass
 - [ ] No public API is broken
 - [ ] Only relevant files are modified
 - [ ] Type safety is preserved
