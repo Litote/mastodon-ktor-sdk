@@ -71,7 +71,7 @@ jobs:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           dependency-graph: disabled
           build-scan-publish: false
-          gradle-home-cache-cleanup: false
+          cache-cleanup: never
 
       - name: Extract release version
         env:
@@ -196,7 +196,7 @@ jobs:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           dependency-graph: disabled
           build-scan-publish: false
-          gradle-home-cache-cleanup: false
+          cache-cleanup: never
 
       - name: Extract release version
         env:
@@ -296,7 +296,7 @@ jobs:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
           dependency-graph: disabled
           build-scan-publish: false
-          gradle-home-cache-cleanup: false
+          cache-cleanup: never
 
       - name: Extract release version
         env:
