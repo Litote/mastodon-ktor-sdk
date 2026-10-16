@@ -31,6 +31,9 @@ Kotlin Multiplatform SDK for the [Mastodon API](https://docs.joinmastodon.org/me
 
 See [sdk/README.md](sdk/README.md).
 
+The [API reference (KDoc)](https://litote.github.io/mastodon-ktor-sdk/) documents the latest release; previous
+versions are available from the version selector.
+
 ## Advanced Usage: generated clients
 
 ### Clients used by the SDK
