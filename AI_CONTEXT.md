@@ -67,6 +67,12 @@ Maven Central limits files / size / releases per month and per organization. Hen
 - Only md5/sha1 checksums, none for `.asc` (`gradle.properties`). No `iosX64` / tvOS / watchOS targets.
 - Release/snapshot workflows publish explicit module lists (Apple job: `:sdk:*` only).
 
+## KDoc (GitHub Pages)
+
+Dokka (+ `versioning-plugin`) is applied in the root `build.gradle.kts` to the hand-written modules only and aggregated at the root.
+The `docs` job of `release-please.yml` (independent of the publish jobs; `workflow_dispatch` with `docs_only` to republish a tag)
+restores previous versions from the `dokka-versions` branch (`versions/<version>/`) via `-PdokkaOlderVersionsDir`, archives the new output there, then deploys to Pages.
+
 ## Hand-written Modules
 
 ### `sdk/configuration`

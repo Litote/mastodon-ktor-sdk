@@ -3,6 +3,7 @@ import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
 import org.gradle.kotlin.dsl.findByType
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.gradle.plugins.signing.Sign
+import org.jetbrains.dokka.gradle.DokkaExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.sonarqube.gradle.SonarExtension
 import java.net.URI
@@ -22,6 +23,7 @@ plugins {
 
 // Apply Dokka only to hand-written modules so the 200+ generated client stubs are excluded
 // from the aggregated KDoc site.
+val dokkaVersioningPlugin = libs.dokka.versioning
 configure(
     listOf(
         project(":sdk:configuration"),
@@ -33,10 +35,26 @@ configure(
     ),
 ) {
     apply(plugin = "org.jetbrains.dokka")
+    dependencies {
+        "dokkaPlugin"(dokkaVersioningPlugin)
+    }
+    extensions.configure<DokkaExtension> {
+        // Source links target the release tag so that archived versions keep pointing to their own code.
+        val modulePath = rootDir.toPath().relativize(projectDir.toPath()).toString()
+        dokkaSourceSets.configureEach {
+            sourceLink {
+                localDirectory.set(projectDir.resolve("src"))
+                remoteUrl("https://github.com/Litote/mastodon-ktor-sdk/tree/v${rootProject.version}/$modulePath/src")
+                remoteLineSuffix.set("#L")
+            }
+        }
+    }
 }
 
 // Aggregate the hand-written modules into a single KDoc publication at the root.
 // Running `./gradlew dokkaGeneratePublicationHtml` produces the site in build/dokka/html/.
+// Pass `-PdokkaOlderVersionsDir=<dir>` (one sub-directory per previous version) to include the
+// archived versions in the version selector — see the `docs` job of release-please.yml.
 dependencies {
     dokka(project(":sdk:configuration"))
     dokka(project(":sdk:send"))
@@ -44,6 +62,18 @@ dependencies {
     dokka(project(":cli"))
     dokka(project(":mcp-server"))
     dokka(project(":gradle-plugin"))
+    dokkaPlugin(dokkaVersioningPlugin)
+}
+
+dokka {
+    pluginsConfiguration {
+        versioning {
+            version.set(project.version.toString())
+            providers.gradleProperty("dokkaOlderVersionsDir").orNull?.let {
+                olderVersionsDir.set(file(it))
+            }
+        }
+    }
 }
 
 
