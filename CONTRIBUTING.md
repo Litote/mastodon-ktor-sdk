@@ -122,6 +122,19 @@ published per month and per organization. To stay within them:
 
 Each new published module or Kotlin target adds about 20 files per publication — check the impact before adding one.
 
+## API documentation (KDoc)
+
+The KDoc of the hand-written modules is aggregated by Dokka (`./gradlew dokkaGeneratePublicationHtml`, output in
+`build/dokka/html/`) and deployed to [GitHub Pages](https://litote.github.io/mastodon-ktor-sdk/) by the `docs` job of
+`release-please.yml` on each release. It is versioned with the Dokka versioning plugin:
+
+- the site root serves the latest release, previous releases are under `older/<version>/` (version selector);
+- each release output is archived in `versions/<version>/` of the `dokka-versions` branch, which is passed back to
+  Dokka with `-PdokkaOlderVersionsDir` since a Pages deployment replaces the whole site;
+- source links point to the release tag (`v<version>`);
+- the `docs` job does not depend on the Maven Central jobs. To (re)publish the documentation of an existing tag only,
+  run the *Release Please* workflow manually with the tag and `docs_only` checked.
+
 ## Update dependencies
 
 ```bash
