@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.4.0](https://github.com/Litote/mastodon-ktor-sdk/compare/v0.3.0...v0.4.0) (2026-10-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* do not publish all sub modules and upgrade openapi-ktor-client-generator to 0.9.0
+
+### Features
+
+* do not publish all sub modules and upgrade openapi-ktor-client-generator to 0.9.0 ([037f637](https://github.com/Litote/mastodon-ktor-sdk/commit/037f6371615acc6c6eed1e9202fd7a05404ad6f5))
+
+
+### Bug Fixes
+
+* **ci:** replace deprecated cache cleanup ([#70](https://github.com/Litote/mastodon-ktor-sdk/issues/70)) ([2a9cd6f](https://github.com/Litote/mastodon-ktor-sdk/commit/2a9cd6fa36776c1c52d273a7c34f917d3b31db71))
+
 ## [0.3.0](https://github.com/Litote/mastodon-ktor-sdk/compare/v0.2.0...v0.3.0) (2026-09-30)
 
 
