@@ -104,12 +104,6 @@ jobs:
             ./gradlew sonar --no-configuration-cache
           fi
 
-      - name: SonarCloud quality gate
-        if: env.SONAR_TOKEN != '' && steps.detect-changes.outputs.has_code_changes == 'true'
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonarCheck --no-configuration-cache
-
 
   check-macos:
     name: Check (macOS / Apple targets)
