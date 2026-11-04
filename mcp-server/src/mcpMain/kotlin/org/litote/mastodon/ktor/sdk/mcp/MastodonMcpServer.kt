@@ -127,7 +127,7 @@ internal class MastodonMcpServer(
         input: Source,
         output: Sink,
     ) {
-        val transport = StdioServerTransport(inputStream = input, outputStream = output)
+        val transport = StdioServerTransport(input = input, output = output)
         server.createSession(transport)
         val done = Job()
         server.onClose { done.complete() }
