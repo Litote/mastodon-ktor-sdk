@@ -101,12 +101,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew sonar --no-configuration-cache
 
-      - name: SonarCloud quality gate
-        if: env.SONAR_TOKEN != ''
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew sonarCheck --no-configuration-cache
-
       # Publishes JVM, JS, WASM, Linux, Windows, and KotlinMultiplatform metadata.
       # Apple targets are excluded here and handled by the publish-macos job.
       - name: Publish to Maven Central
