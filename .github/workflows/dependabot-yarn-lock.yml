@@ -1,0 +1,70 @@
+name: Update Kotlin yarn lock
+
+on:
+  pull_request_target:
+    branches: [ main ]
+    paths:
+      - 'gradle/libs.versions.toml'
+
+jobs:
+  update-yarn-lock:
+    name: Regenerate Kotlin yarn lock
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository
+    # Every workflow that commits to a Dependabot branch uses this group: two commits in parallel
+    # make the second ref update fail with "Update is not a fast forward". Declared at job level so
+    # that runs skipped by the `if` above stay out of the group; `queue: max` keeps every pending job.
+    concurrency:
+      group: dependabot-branch-update-${{ github.head_ref }}
+      cancel-in-progress: false
+      queue: max
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: app-token
+        with:
+          app-id: ${{ secrets.RELEASE_PLEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+
+      # Checkout the base branch (trusted code) to avoid executing untrusted build scripts.
+      # Only the version catalog is then fetched from the PR branch: it has safe, predictable
+      # content from Dependabot.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.base_ref }}
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Apply Dependabot version changes
+        id: pr-head
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          git fetch origin "$HEAD_REF"
+          echo "sha=$(git rev-parse FETCH_HEAD)" >> "$GITHUB_OUTPUT"
+          git checkout FETCH_HEAD -- gradle/libs.versions.toml
+
+      - uses: Litote/ci/.github/actions/setup-gradle@731f25b65744afb6ed50783472a6746193353272 # v0.6.0
+
+      # kotlinUpgradeYarnLock starts from the stored locks (kotlinRestoreYarnLock) and keeps
+      # their resolved versions, so transitive security fixes would never be picked up.
+      # Removing the locks forces a full resolution.
+      # Dependency verification is disabled: this job only pulls libs.versions.toml from the PR,
+      # not the verification metadata owned by the gradle-verification workflow.
+      - name: Regenerate Kotlin yarn lock
+        run: |
+          rm -f kotlin-js-store/yarn.lock kotlin-js-store/wasm/yarn.lock
+          ./gradlew kotlinUpgradeYarnLock kotlinWasmUpgradeYarnLock -PappleTargets=false --dependency-verification off
+
+      - uses: Litote/ci/.github/actions/commit-via-api@731f25b65744afb6ed50783472a6746193353272 # v0.6.0
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          branch: ${{ github.head_ref }}
+          paths: kotlin-js-store/yarn.lock kotlin-js-store/wasm/yarn.lock
+          message: 'chore: update Kotlin yarn lock'
+          expected-head: ${{ steps.pr-head.outputs.sha }}

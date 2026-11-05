@@ -4,6 +4,10 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.gradle.plugins.signing.Sign
 import org.jetbrains.dokka.gradle.DokkaExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
+import org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnPlugin
+import org.jetbrains.kotlin.gradle.targets.wasm.yarn.WasmYarnRootExtension
 import org.sonarqube.gradle.SonarExtension
 
 plugins {
@@ -14,6 +18,16 @@ plugins {
     alias(openapi.plugins.ktlint) apply false
     alias(openapi.plugins.sonarqube)
     id("jacoco")
+}
+
+// ktor-client-core pins ws to a version affected by GHSA-96hv-2xvq-fx4p.
+// Remove these resolutions once Ktor depends on ws >= 8.21.0.
+val wsVersion = "8.21.3"
+plugins.withType<YarnPlugin> {
+    the<YarnRootExtension>().resolution("ws", wsVersion)
+}
+plugins.withType<WasmYarnPlugin> {
+    the<WasmYarnRootExtension>().resolution("ws", wsVersion)
 }
 
 // Apply Dokka only to hand-written modules so the 200+ generated client stubs are excluded
