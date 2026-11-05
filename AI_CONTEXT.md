@@ -147,3 +147,13 @@ Published to the Gradle Plugin Portal.
 1. Create the module directory (e.g. `sdk/mymodule/` or `mymodule/` at root)
 2. Add `build.gradle.kts` applying `id("kotlin-convention")`
 3. Add `include(":sdk:mymodule")` (or `include(":mymodule")`) to `settings.gradle.kts` **outside** the generated block
+
+---
+
+## Kotlin JS yarn locks
+
+- `kotlin-js-store/yarn.lock` and `kotlin-js-store/wasm/yarn.lock` — `kotlinUpgradeYarnLock` restores the stored lock
+  first and keeps its resolved versions, so delete both files before running it to pick up transitive fixes
+  (the `dependabot-yarn-lock.yml` workflow does this).
+- The root `build.gradle.kts` forces `ws` through a Yarn resolution (JS and Wasm), because `ktor-client-core` pins a
+  vulnerable version. It only applies to the builds of this repository: JS consumers of the SDK resolve their own `ws`.
