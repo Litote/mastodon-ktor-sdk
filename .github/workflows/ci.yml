@@ -15,12 +15,12 @@ jobs:
     if: github.event_name == 'pull_request'
     permissions:
       pull-requests: read
-    uses: Litote/ci/.github/workflows/pr-title.yml@5f7a96295fbcd88179faba3ac78685a78b7b6c84 # v0.8.1
+    uses: Litote/ci/.github/workflows/pr-title.yml@c111317515db0963d8dfebb7821cefbc92d34897 # v0.9.0
 
   check:
     permissions:
       contents: read
-    uses: Litote/ci/.github/workflows/gradle-check.yml@5f7a96295fbcd88179faba3ac78685a78b7b6c84 # v0.8.1
+    uses: Litote/ci/.github/workflows/gradle-check.yml@c111317515db0963d8dfebb7821cefbc92d34897 # v0.9.0
     with:
       check-name: Check (JVM / JS / Linux)
       jvm-args: -Xmx3g -Dfile.encoding=UTF-8
@@ -31,3 +31,13 @@ jobs:
     secrets:
       GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # Called on every pull request: a required check of a job skipped here would stay pending
+  commit-guard:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: read
+    uses: Litote/ci/.github/workflows/dependabot-commit-guard.yml@c111317515db0963d8dfebb7821cefbc92d34897 # v0.9.0
+    with:
+      allowed-paths: ^(gradle/verification-metadata\.xml|kotlin-js-store/(wasm/)?yarn\.lock)$
