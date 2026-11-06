@@ -62,7 +62,7 @@ Maven Central limits files / size / releases per month and per organization. Hen
 - `:sdk:api` is generated (single module, no split) with `allowedPaths` = operations used by the SDKs: clients are per tag
   (`StatusesClient`, `MediaClient`, `TimelinesClient`, `NotificationsClient`, `SearchClient`), models in `org.litote.mastodon.ktor.sdk.api.model`.
   To use a new operation in an SDK, add its path there.
-- Users generate other operations themselves from the `openapi` artifact (README procedure, `samples/custom-client`).
+- Users generate other operations themselves from the `openapi` artifact (`ADVANCED_USAGE.md` procedure, `samples/custom-client`).
   oneOf request/response models of filtered-out operations are not generated, so `allowedPaths` lists only the operations the SDKs call.
 - Only md5/sha1 checksums, none for `.asc` (`gradle.properties`). No `iosX64` / tvOS / watchOS targets.
 - Release/snapshot workflows publish explicit module lists (Apple job: `:sdk:*` only).
