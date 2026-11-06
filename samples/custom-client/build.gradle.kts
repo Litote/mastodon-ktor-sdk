@@ -1,6 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-// Executable example of the "generate only the clients you need" procedure documented in README.md.
+// Executable example of the "generate only the clients you need" procedure documented in ADVANCED_USAGE.md.
 // Not published: it checks that a client generated from the Mastodon spec with its own base package
 // compiles and runs next to the published SDKs without class name collisions.
 plugins {
