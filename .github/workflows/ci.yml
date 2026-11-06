@@ -15,12 +15,12 @@ jobs:
     if: github.event_name == 'pull_request'
     permissions:
       pull-requests: read
-    uses: Litote/ci/.github/workflows/pr-title.yml@731f25b65744afb6ed50783472a6746193353272 # v0.6.0
+    uses: Litote/ci/.github/workflows/pr-title.yml@5f7a96295fbcd88179faba3ac78685a78b7b6c84 # v0.8.1
 
   check:
     permissions:
       contents: read
-    uses: Litote/ci/.github/workflows/gradle-check.yml@731f25b65744afb6ed50783472a6746193353272 # v0.6.0
+    uses: Litote/ci/.github/workflows/gradle-check.yml@5f7a96295fbcd88179faba3ac78685a78b7b6c84 # v0.8.1
     with:
       check-name: Check (JVM / JS / Linux)
       jvm-args: -Xmx3g -Dfile.encoding=UTF-8
