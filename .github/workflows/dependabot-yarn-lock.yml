@@ -33,7 +33,7 @@ jobs:
           git fetch origin "$HEAD_SHA"
           git checkout FETCH_HEAD -- gradle/libs.versions.toml
 
-      - uses: Litote/ci/.github/actions/setup-gradle@c111317515db0963d8dfebb7821cefbc92d34897 # v0.9.0
+      - uses: Litote/ci/.github/actions/setup-gradle@510461dc1f569a7c12735a6cad12e88a6cb533ad # v0.10.0
         with:
           # Jobs that hold secrets restore this cache. GitHub already gives this event
           # read-only access to it.
