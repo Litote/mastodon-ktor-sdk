@@ -33,7 +33,7 @@ jobs:
         run: sed -i 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx6g -Dfile.encoding=UTF-8/' gradle.properties
 
       # Generated clients under client/ are not published (Maven Central publishing limits).
-      - uses: Litote/ci/.github/actions/maven-central-publish@c111317515db0963d8dfebb7821cefbc92d34897 # v0.9.0
+      - uses: Litote/ci/.github/actions/maven-central-publish@510461dc1f569a7c12735a6cad12e88a6cb533ad # v0.10.0
         with:
           gradle-args: >
             :openapi:publishToMavenCentral

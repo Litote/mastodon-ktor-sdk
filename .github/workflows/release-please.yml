@@ -81,7 +81,7 @@ jobs:
 
       # Publishes JVM, JS, WASM, Linux, Windows, and KotlinMultiplatform metadata.
       # Apple targets are excluded here and handled by the publish-macos job.
-      - uses: Litote/ci/.github/actions/maven-central-publish@c111317515db0963d8dfebb7821cefbc92d34897 # v0.9.0
+      - uses: Litote/ci/.github/actions/maven-central-publish@510461dc1f569a7c12735a6cad12e88a6cb533ad # v0.10.0
         with:
           gradle-args: >
             publishAndReleaseToMavenCentral
@@ -176,7 +176,7 @@ jobs:
       # Publishes only Apple targets (macOS, iOS) of the SDK modules.
       # Generated clients under client/ are not published (Maven Central publishing limits).
       # JVM / JS / WASM / Linux / Windows / KotlinMultiplatform metadata are handled by the publish job.
-      - uses: Litote/ci/.github/actions/maven-central-publish@c111317515db0963d8dfebb7821cefbc92d34897 # v0.9.0
+      - uses: Litote/ci/.github/actions/maven-central-publish@510461dc1f569a7c12735a6cad12e88a6cb533ad # v0.10.0
         with:
           gradle-args: >
             :sdk:api:publishAndReleaseToMavenCentral
