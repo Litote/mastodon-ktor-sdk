@@ -15,12 +15,12 @@ jobs:
     if: github.event_name == 'pull_request'
     permissions:
       pull-requests: read
-    uses: Litote/ci/.github/workflows/pr-title.yml@510461dc1f569a7c12735a6cad12e88a6cb533ad # v0.10.0
+    uses: Litote/ci/.github/workflows/pr-title.yml@15172a08495ba5ce96b92c224ede2d102174803f # v0.12.0
 
   check:
     permissions:
       contents: read
-    uses: Litote/ci/.github/workflows/gradle-check.yml@510461dc1f569a7c12735a6cad12e88a6cb533ad # v0.10.0
+    uses: Litote/ci/.github/workflows/gradle-check.yml@15172a08495ba5ce96b92c224ede2d102174803f # v0.12.0
     with:
       check-name: Check (JVM / JS / Linux)
       jvm-args: -Xmx3g -Dfile.encoding=UTF-8
@@ -38,6 +38,6 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
-    uses: Litote/ci/.github/workflows/dependabot-commit-guard.yml@510461dc1f569a7c12735a6cad12e88a6cb533ad # v0.10.0
+    uses: Litote/ci/.github/workflows/dependabot-commit-guard.yml@15172a08495ba5ce96b92c224ede2d102174803f # v0.12.0
     with:
       allowed-paths: ^(gradle/verification-metadata\.xml|kotlin-js-store/(wasm/)?yarn\.lock)$
