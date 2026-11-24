@@ -22,7 +22,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      - uses: Litote/ci/.github/actions/setup-gradle@15172a08495ba5ce96b92c224ede2d102174803f # v0.12.0
+      - uses: Litote/ci/.github/actions/setup-gradle@63a67e7add1b9fde6396c84399f90c9252f7b8e6 # v0.15.0
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
@@ -33,7 +33,7 @@ jobs:
         run: sed -i 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx6g -Dfile.encoding=UTF-8/' gradle.properties
 
       # Generated clients under client/ are not published (Maven Central publishing limits).
-      - uses: Litote/ci/.github/actions/maven-central-publish@15172a08495ba5ce96b92c224ede2d102174803f # v0.12.0
+      - uses: Litote/ci/.github/actions/maven-central-publish@63a67e7add1b9fde6396c84399f90c9252f7b8e6 # v0.15.0
         with:
           gradle-args: >
             :openapi:publishToMavenCentral
