@@ -40,4 +40,4 @@ jobs:
       pull-requests: read
     uses: Litote/ci/.github/workflows/dependabot-commit-guard.yml@15172a08495ba5ce96b92c224ede2d102174803f # v0.12.0
     with:
-      allowed-paths: ^(gradle/verification-metadata\.xml|kotlin-js-store/(wasm/)?yarn\.lock)$
+      allowed-paths: ^(gradle/verification-metadata\.xml|kotlin-js-store/(wasm/)?yarn\.lock|client/.*|sdk/api/build/.*)$

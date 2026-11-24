@@ -13,6 +13,10 @@ jobs:
     permissions:
       contents: read
     uses: Litote/ci/.github/workflows/gradle-verification.yml@15172a08495ba5ce96b92c224ede2d102174803f # v0.12.0
+    with:
+      # check regenerates the clients: a generator bump commits them with the verification metadata
+      commit-paths: client sdk/api/build
+      message: 'chore: update gradle verification metadata and generated clients'
     secrets:
       RELEASE_PLEASE_APP_ID: ${{ secrets.RELEASE_PLEASE_APP_ID }}
       RELEASE_PLEASE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}

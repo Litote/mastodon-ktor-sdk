@@ -201,6 +201,8 @@ sonar {
             "sonar.coverage.jacoco.xmlReportPaths",
             layout.buildDirectory.file("reports/jacoco/jacocoAggregatedReport/jacocoAggregatedReport.xml").get().asFile.absolutePath,
         )
+        // Generated clients: committed (so not ignored by git, which Sonar honours), but not analysed.
+        property("sonar.exclusions", "**/build/api-mastodon/**")
         // Gradle plugin and convention modules are build tooling — no unit tests expected.
         // Native I/O source sets contain platform-specific stdin/stdout wrappers — untestable from the JVM.
         property(
