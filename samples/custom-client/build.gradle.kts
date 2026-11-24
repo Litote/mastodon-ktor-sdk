@@ -45,8 +45,8 @@ dependencies {
     testImplementation(project(":sdk:send"))
     testImplementation(project(":sdk:configuration"))
     testImplementation(kotlin("test"))
-    testImplementation(libs.ktor.client.mock)
-    testImplementation(libs.coroutines.test)
+    testImplementation(openapi.ktor.client.mock)
+    testImplementation(openapi.coroutines.test)
 }
 
 sonar {

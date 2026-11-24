@@ -21,6 +21,9 @@ dependencyResolutionManagement {
     versionCatalogs {
         create("openapi") {
             from("org.litote.openapi.ktor.client.generator:version-catalog:$generatorVersion")
+            // Test libraries aligned on the Ktor / coroutines versions of the generated clients
+            library("ktor-client-mock", "io.ktor", "ktor-client-mock").versionRef("ktor")
+            library("coroutines-test", "org.jetbrains.kotlinx", "kotlinx-coroutines-test").versionRef("coroutines")
         }
     }
 }

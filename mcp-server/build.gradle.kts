@@ -55,8 +55,8 @@ kotlin {
 
         jvmTest {
             dependencies {
-                implementation(libs.ktor.client.mock)
-                implementation(libs.coroutines.test)
+                implementation(openapi.ktor.client.mock)
+                implementation(openapi.coroutines.test)
             }
         }
     }
