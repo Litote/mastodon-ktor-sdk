@@ -1,9 +1,12 @@
 # Gradle build output
 .gradle/
-build/
+# build/* rather than build/: git cannot re-include a file whose directory is excluded
+**/build/*
 
 # Keep generated OpenAPI files
-!**/build/api-mastodon/**
+!**/build/api-mastodon/
+# ... except for the samples, which show the generation on the user side
+samples/*/build/
 
 # IntelliJ IDEA
 .idea/

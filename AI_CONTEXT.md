@@ -19,7 +19,7 @@ Kotlin Multiplatform SDK for the [Mastodon API](https://docs.joinmastodon.org/me
 mastodon-ktor-sdk/
 ├── src/main/openapi/
 │   └── mastodon.json          → Mastodon OpenAPI spec (source of truth for client/)
-├── client/                    → Generated API clients (do NOT edit manually) — NOT published
+├── client/                    → Generated API clients (do NOT edit manually, sources committed under */build/api-mastodon) — NOT published
 │   ├── shared/                → Shared ClientConfiguration (generated)
 │   ├── shared-*/              → Shared model groups (generated)
 │   └── *-client/              → One module per API operation (generated)

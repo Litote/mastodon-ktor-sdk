@@ -17,11 +17,14 @@ jobs:
     with:
       ecosystems: gradle
       # Gradle plugins and the build tools run in the build without being called: they stay manual.
+      # The generator also changes the generated clients and the public API of :sdk:api:
+      # the diff is reviewed and the release type chosen when merging.
       exclude-dependencies: >-
         com.gradleup.shadow*,
         org.jetbrains.dokka*,
         dokka,
-        shadow
+        shadow,
+        org.litote.openapi.ktor.client.generator*
     secrets:
       RELEASE_PLEASE_APP_ID: ${{ secrets.RELEASE_PLEASE_APP_ID }}
       RELEASE_PLEASE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
