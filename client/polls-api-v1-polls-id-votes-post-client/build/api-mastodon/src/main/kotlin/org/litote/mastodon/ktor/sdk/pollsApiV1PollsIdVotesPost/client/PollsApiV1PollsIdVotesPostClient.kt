@@ -10,12 +10,17 @@ import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.Long
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget27089f74.model.Poll
 
@@ -31,16 +36,17 @@ public interface PollsApiV1PollsIdVotesPostClient {
   )
 
   @Serializable
-  public sealed class PostPollVotesResponse {
-    public abstract val headers: Headers
+  public sealed class PostPollVotesResponse : OperationResponse<Poll> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class PostPollVotesResponseSuccess(
-    public val body: Poll,
+    override val body: Poll,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostPollVotesResponse() {
+  ) : PostPollVotesResponse(),
+      OperationResponseSuccess<Poll> {
     /**
      * Number of requests permitted per time period
      */
@@ -62,23 +68,29 @@ public interface PollsApiV1PollsIdVotesPostClient {
 
   @Serializable
   public data class PostPollVotesResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostPollVotesResponse()
+  ) : PostPollVotesResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class PostPollVotesResponseFailure(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostPollVotesResponse()
+  ) : PostPollVotesResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class PostPollVotesResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostPollVotesResponse()
+  ) : PostPollVotesResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun PollsApiV1PollsIdVotesPostClient(configuration: ClientConfiguration = defaultClientConfiguration): PollsApiV1PollsIdVotesPostClient = DefaultPollsApiV1PollsIdVotesPostClient(configuration)

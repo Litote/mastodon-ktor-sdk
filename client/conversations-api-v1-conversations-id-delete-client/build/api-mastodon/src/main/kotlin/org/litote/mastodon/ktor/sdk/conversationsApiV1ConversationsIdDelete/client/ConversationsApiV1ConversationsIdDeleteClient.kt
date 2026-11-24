@@ -6,11 +6,16 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 
@@ -21,15 +26,19 @@ public interface ConversationsApiV1ConversationsIdDeleteClient {
   public suspend fun deleteConversation(id: String): DeleteConversationResponse
 
   @Serializable
-  public sealed class DeleteConversationResponse {
-    public abstract val headers: Headers
+  public sealed class DeleteConversationResponse : OperationResponse<Unit> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class DeleteConversationResponseSuccess(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteConversationResponse() {
+  ) : DeleteConversationResponse(),
+      OperationResponseSuccess<Unit> {
+    override val body: Unit
+      get() = Unit
+
     /**
      * Number of requests permitted per time period
      */
@@ -51,30 +60,37 @@ public interface ConversationsApiV1ConversationsIdDeleteClient {
 
   @Serializable
   public data class DeleteConversationResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteConversationResponse()
+  ) : DeleteConversationResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class DeleteConversationResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteConversationResponse()
+  ) : DeleteConversationResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class DeleteConversationResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteConversationResponse()
+  ) : DeleteConversationResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class DeleteConversationResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteConversationResponse()
+  ) : DeleteConversationResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun ConversationsApiV1ConversationsIdDeleteClient(configuration: ClientConfiguration = defaultClientConfiguration): ConversationsApiV1ConversationsIdDeleteClient = DefaultConversationsApiV1ConversationsIdDeleteClient(configuration)

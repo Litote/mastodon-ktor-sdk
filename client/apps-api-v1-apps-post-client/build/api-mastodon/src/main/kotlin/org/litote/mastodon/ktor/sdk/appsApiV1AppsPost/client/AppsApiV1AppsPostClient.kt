@@ -8,6 +8,7 @@ import io.ktor.http.Headers
 import io.ktor.http.contentType
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.SerialName
@@ -15,6 +16,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.model.CredentialApplication
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 
@@ -35,16 +40,17 @@ public interface AppsApiV1AppsPostClient {
   )
 
   @Serializable
-  public sealed class CreateAppResponse {
-    public abstract val headers: Headers
+  public sealed class CreateAppResponse : OperationResponse<CredentialApplication> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class CreateAppResponseSuccess(
-    public val body: CredentialApplication,
+    override val body: CredentialApplication,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateAppResponse() {
+  ) : CreateAppResponse(),
+      OperationResponseSuccess<CredentialApplication> {
     /**
      * Number of requests permitted per time period
      */
@@ -66,23 +72,29 @@ public interface AppsApiV1AppsPostClient {
 
   @Serializable
   public data class CreateAppResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateAppResponse()
+  ) : CreateAppResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class CreateAppResponseFailure(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateAppResponse()
+  ) : CreateAppResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class CreateAppResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateAppResponse()
+  ) : CreateAppResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun AppsApiV1AppsPostClient(configuration: ClientConfiguration = defaultClientConfiguration): AppsApiV1AppsPostClient = DefaultAppsApiV1AppsPostClient(configuration)

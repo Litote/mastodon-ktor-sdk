@@ -6,11 +6,16 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 
@@ -21,15 +26,19 @@ public interface ScheduledStatusesApiV1ScheduledStatusesIdDeleteClient {
   public suspend fun deleteScheduledStatus(id: String): DeleteScheduledStatusResponse
 
   @Serializable
-  public sealed class DeleteScheduledStatusResponse {
-    public abstract val headers: Headers
+  public sealed class DeleteScheduledStatusResponse : OperationResponse<Unit> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class DeleteScheduledStatusResponseSuccess(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteScheduledStatusResponse() {
+  ) : DeleteScheduledStatusResponse(),
+      OperationResponseSuccess<Unit> {
+    override val body: Unit
+      get() = Unit
+
     /**
      * Number of requests permitted per time period
      */
@@ -51,30 +60,37 @@ public interface ScheduledStatusesApiV1ScheduledStatusesIdDeleteClient {
 
   @Serializable
   public data class DeleteScheduledStatusResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteScheduledStatusResponse()
+  ) : DeleteScheduledStatusResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class DeleteScheduledStatusResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteScheduledStatusResponse()
+  ) : DeleteScheduledStatusResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class DeleteScheduledStatusResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteScheduledStatusResponse()
+  ) : DeleteScheduledStatusResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class DeleteScheduledStatusResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteScheduledStatusResponse()
+  ) : DeleteScheduledStatusResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun ScheduledStatusesApiV1ScheduledStatusesIdDeleteClient(configuration: ClientConfiguration = defaultClientConfiguration): ScheduledStatusesApiV1ScheduledStatusesIdDeleteClient = DefaultScheduledStatusesApiV1ScheduledStatusesIdDeleteClient(configuration)

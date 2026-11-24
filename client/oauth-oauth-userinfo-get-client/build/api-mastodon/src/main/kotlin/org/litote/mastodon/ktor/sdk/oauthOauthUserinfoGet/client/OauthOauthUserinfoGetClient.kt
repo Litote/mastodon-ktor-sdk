@@ -5,11 +5,16 @@ import io.ktor.client.request.`get`
 import io.ktor.http.Headers
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 
@@ -20,15 +25,19 @@ public interface OauthOauthUserinfoGetClient {
   public suspend fun getOauthUserinfo(): GetOauthUserinfoResponse
 
   @Serializable
-  public sealed class GetOauthUserinfoResponse {
-    public abstract val headers: Headers
+  public sealed class GetOauthUserinfoResponse : OperationResponse<Unit> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetOauthUserinfoResponseSuccess(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetOauthUserinfoResponse() {
+  ) : GetOauthUserinfoResponse(),
+      OperationResponseSuccess<Unit> {
+    override val body: Unit
+      get() = Unit
+
     /**
      * Number of requests permitted per time period
      */
@@ -50,30 +59,37 @@ public interface OauthOauthUserinfoGetClient {
 
   @Serializable
   public data class GetOauthUserinfoResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetOauthUserinfoResponse()
+  ) : GetOauthUserinfoResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetOauthUserinfoResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetOauthUserinfoResponse()
+  ) : GetOauthUserinfoResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetOauthUserinfoResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetOauthUserinfoResponse()
+  ) : GetOauthUserinfoResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetOauthUserinfoResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetOauthUserinfoResponse()
+  ) : GetOauthUserinfoResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun OauthOauthUserinfoGetClient(configuration: ClientConfiguration = defaultClientConfiguration): OauthOauthUserinfoGetClient = DefaultOauthOauthUserinfoGetClient(configuration)

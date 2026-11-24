@@ -6,12 +6,17 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesgetB0793237.model.FilterKeyword
@@ -23,16 +28,17 @@ public interface FiltersApiV2FiltersFilterIdKeywordsGetClient {
   public suspend fun getFilterKeywordsV2(filterId: String): GetFilterKeywordsV2Response
 
   @Serializable
-  public sealed class GetFilterKeywordsV2Response {
-    public abstract val headers: Headers
+  public sealed class GetFilterKeywordsV2Response : OperationResponse<List<FilterKeyword>> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetFilterKeywordsV2ResponseSuccess(
-    public val body: List<FilterKeyword>,
+    override val body: List<FilterKeyword>,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetFilterKeywordsV2Response() {
+  ) : GetFilterKeywordsV2Response(),
+      OperationResponseSuccess<List<FilterKeyword>> {
     /**
      * Number of requests permitted per time period
      */
@@ -54,30 +60,37 @@ public interface FiltersApiV2FiltersFilterIdKeywordsGetClient {
 
   @Serializable
   public data class GetFilterKeywordsV2ResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetFilterKeywordsV2Response()
+  ) : GetFilterKeywordsV2Response(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetFilterKeywordsV2ResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetFilterKeywordsV2Response()
+  ) : GetFilterKeywordsV2Response(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetFilterKeywordsV2ResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetFilterKeywordsV2Response()
+  ) : GetFilterKeywordsV2Response(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetFilterKeywordsV2ResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetFilterKeywordsV2Response()
+  ) : GetFilterKeywordsV2Response(),
+      OperationResponseUnknownFailure
 }
 
 public fun FiltersApiV2FiltersFilterIdKeywordsGetClient(configuration: ClientConfiguration = defaultClientConfiguration): FiltersApiV2FiltersFilterIdKeywordsGetClient = DefaultFiltersApiV2FiltersFilterIdKeywordsGetClient(configuration)

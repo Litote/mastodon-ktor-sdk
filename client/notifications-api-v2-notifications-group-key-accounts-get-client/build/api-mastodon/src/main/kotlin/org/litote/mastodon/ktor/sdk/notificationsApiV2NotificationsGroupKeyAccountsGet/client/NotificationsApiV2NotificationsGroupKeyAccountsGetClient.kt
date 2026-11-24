@@ -6,12 +6,17 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersgetB7d593a6.model.Account
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
@@ -23,16 +28,17 @@ public interface NotificationsApiV2NotificationsGroupKeyAccountsGetClient {
   public suspend fun getNotificationAccountsV2(groupKey: String): GetNotificationAccountsV2Response
 
   @Serializable
-  public sealed class GetNotificationAccountsV2Response {
-    public abstract val headers: Headers
+  public sealed class GetNotificationAccountsV2Response : OperationResponse<List<Account>> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetNotificationAccountsV2ResponseSuccess(
-    public val body: List<Account>,
+    override val body: List<Account>,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationAccountsV2Response() {
+  ) : GetNotificationAccountsV2Response(),
+      OperationResponseSuccess<List<Account>> {
     /**
      * Number of requests permitted per time period
      */
@@ -54,30 +60,37 @@ public interface NotificationsApiV2NotificationsGroupKeyAccountsGetClient {
 
   @Serializable
   public data class GetNotificationAccountsV2ResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationAccountsV2Response()
+  ) : GetNotificationAccountsV2Response(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetNotificationAccountsV2ResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationAccountsV2Response()
+  ) : GetNotificationAccountsV2Response(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetNotificationAccountsV2ResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationAccountsV2Response()
+  ) : GetNotificationAccountsV2Response(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetNotificationAccountsV2ResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationAccountsV2Response()
+  ) : GetNotificationAccountsV2Response(),
+      OperationResponseUnknownFailure
 }
 
 public fun NotificationsApiV2NotificationsGroupKeyAccountsGetClient(configuration: ClientConfiguration = defaultClientConfiguration): NotificationsApiV2NotificationsGroupKeyAccountsGetClient = DefaultNotificationsApiV2NotificationsGroupKeyAccountsGetClient(configuration)

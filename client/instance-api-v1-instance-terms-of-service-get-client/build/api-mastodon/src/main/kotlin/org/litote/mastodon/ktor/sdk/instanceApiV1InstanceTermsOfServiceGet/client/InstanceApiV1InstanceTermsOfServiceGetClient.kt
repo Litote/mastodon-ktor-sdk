@@ -5,11 +5,16 @@ import io.ktor.client.request.`get`
 import io.ktor.http.Headers
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedInstanceapiv1instancetermsofservicedategetFcd3eaa4.model.TermsOfService
@@ -21,16 +26,17 @@ public interface InstanceApiV1InstanceTermsOfServiceGetClient {
   public suspend fun getInstanceTermsOfService(): GetInstanceTermsOfServiceResponse
 
   @Serializable
-  public sealed class GetInstanceTermsOfServiceResponse {
-    public abstract val headers: Headers
+  public sealed class GetInstanceTermsOfServiceResponse : OperationResponse<TermsOfService> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetInstanceTermsOfServiceResponseSuccess(
-    public val body: TermsOfService,
+    override val body: TermsOfService,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetInstanceTermsOfServiceResponse() {
+  ) : GetInstanceTermsOfServiceResponse(),
+      OperationResponseSuccess<TermsOfService> {
     /**
      * Number of requests permitted per time period
      */
@@ -52,30 +58,37 @@ public interface InstanceApiV1InstanceTermsOfServiceGetClient {
 
   @Serializable
   public data class GetInstanceTermsOfServiceResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetInstanceTermsOfServiceResponse()
+  ) : GetInstanceTermsOfServiceResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetInstanceTermsOfServiceResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetInstanceTermsOfServiceResponse()
+  ) : GetInstanceTermsOfServiceResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetInstanceTermsOfServiceResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetInstanceTermsOfServiceResponse()
+  ) : GetInstanceTermsOfServiceResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetInstanceTermsOfServiceResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetInstanceTermsOfServiceResponse()
+  ) : GetInstanceTermsOfServiceResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun InstanceApiV1InstanceTermsOfServiceGetClient(configuration: ClientConfiguration = defaultClientConfiguration): InstanceApiV1InstanceTermsOfServiceGetClient = DefaultInstanceApiV1InstanceTermsOfServiceGetClient(configuration)

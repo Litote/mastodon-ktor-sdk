@@ -6,11 +6,16 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidblockpostBcce5a7a.model.Relationship
 
@@ -21,16 +26,17 @@ public interface AccountsApiV1AccountsIdUnfollowPostClient {
   public suspend fun postAccountUnfollow(id: String): PostAccountUnfollowResponse
 
   @Serializable
-  public sealed class PostAccountUnfollowResponse {
-    public abstract val headers: Headers
+  public sealed class PostAccountUnfollowResponse : OperationResponse<Relationship> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class PostAccountUnfollowResponseSuccess(
-    public val body: Relationship,
+    override val body: Relationship,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostAccountUnfollowResponse() {
+  ) : PostAccountUnfollowResponse(),
+      OperationResponseSuccess<Relationship> {
     /**
      * Number of requests permitted per time period
      */
@@ -52,23 +58,29 @@ public interface AccountsApiV1AccountsIdUnfollowPostClient {
 
   @Serializable
   public data class PostAccountUnfollowResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostAccountUnfollowResponse()
+  ) : PostAccountUnfollowResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class PostAccountUnfollowResponseFailure(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostAccountUnfollowResponse()
+  ) : PostAccountUnfollowResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class PostAccountUnfollowResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostAccountUnfollowResponse()
+  ) : PostAccountUnfollowResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun AccountsApiV1AccountsIdUnfollowPostClient(configuration: ClientConfiguration = defaultClientConfiguration): AccountsApiV1AccountsIdUnfollowPostClient = DefaultAccountsApiV1AccountsIdUnfollowPostClient(configuration)

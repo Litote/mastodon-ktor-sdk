@@ -5,12 +5,17 @@ import io.ktor.client.request.`get`
 import io.ktor.http.Headers
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.model.Announcement
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
@@ -22,16 +27,17 @@ public interface AnnouncementsApiV1AnnouncementsGetClient {
   public suspend fun getAnnouncements(): GetAnnouncementsResponse
 
   @Serializable
-  public sealed class GetAnnouncementsResponse {
-    public abstract val headers: Headers
+  public sealed class GetAnnouncementsResponse : OperationResponse<List<Announcement>> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetAnnouncementsResponseSuccess(
-    public val body: List<Announcement>,
+    override val body: List<Announcement>,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAnnouncementsResponse() {
+  ) : GetAnnouncementsResponse(),
+      OperationResponseSuccess<List<Announcement>> {
     /**
      * Number of requests permitted per time period
      */
@@ -53,30 +59,37 @@ public interface AnnouncementsApiV1AnnouncementsGetClient {
 
   @Serializable
   public data class GetAnnouncementsResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAnnouncementsResponse()
+  ) : GetAnnouncementsResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetAnnouncementsResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAnnouncementsResponse()
+  ) : GetAnnouncementsResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetAnnouncementsResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAnnouncementsResponse()
+  ) : GetAnnouncementsResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetAnnouncementsResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAnnouncementsResponse()
+  ) : GetAnnouncementsResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun AnnouncementsApiV1AnnouncementsGetClient(configuration: ClientConfiguration = defaultClientConfiguration): AnnouncementsApiV1AnnouncementsGetClient = DefaultAnnouncementsApiV1AnnouncementsGetClient(configuration)

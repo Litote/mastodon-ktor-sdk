@@ -6,12 +6,17 @@ import io.ktor.http.Headers
 import kotlin.Int
 import kotlin.Long
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedNotificationsapiv1notificationsrequestsget7fa167cd.model.NotificationRequest
@@ -28,16 +33,17 @@ public interface NotificationsApiV1NotificationsRequestsGetClient {
   ): GetNotificationRequestsResponse
 
   @Serializable
-  public sealed class GetNotificationRequestsResponse {
-    public abstract val headers: Headers
+  public sealed class GetNotificationRequestsResponse : OperationResponse<List<NotificationRequest>> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetNotificationRequestsResponseSuccess(
-    public val body: List<NotificationRequest>,
+    override val body: List<NotificationRequest>,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationRequestsResponse() {
+  ) : GetNotificationRequestsResponse(),
+      OperationResponseSuccess<List<NotificationRequest>> {
     /**
      * Pagination links for browsing older or newer results. Format: Link: <https://mastodon.example/api/v1/endpoint?max_id=7163058>; rel="next", <https://mastodon.example/api/v1/endpoint?min_id=7275607>; rel="prev". See [RFC 8288](https://www.rfc-editor.org/rfc/rfc8288) for more information.
      */
@@ -65,30 +71,37 @@ public interface NotificationsApiV1NotificationsRequestsGetClient {
 
   @Serializable
   public data class GetNotificationRequestsResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationRequestsResponse()
+  ) : GetNotificationRequestsResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetNotificationRequestsResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationRequestsResponse()
+  ) : GetNotificationRequestsResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetNotificationRequestsResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationRequestsResponse()
+  ) : GetNotificationRequestsResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetNotificationRequestsResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationRequestsResponse()
+  ) : GetNotificationRequestsResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun NotificationsApiV1NotificationsRequestsGetClient(configuration: ClientConfiguration = defaultClientConfiguration): NotificationsApiV1NotificationsRequestsGetClient = DefaultNotificationsApiV1NotificationsRequestsGetClient(configuration)

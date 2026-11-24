@@ -6,12 +6,17 @@ import io.ktor.http.Headers
 import kotlin.Int
 import kotlin.Long
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedFeaturedtagsapiv1featuredtagssuggestionsget1c497d1f.model.Tag
@@ -23,16 +28,17 @@ public interface TrendsApiV1TrendsTagsGetClient {
   public suspend fun getTrendTags(limit: Long? = 10, offset: Long? = null): GetTrendTagsResponse
 
   @Serializable
-  public sealed class GetTrendTagsResponse {
-    public abstract val headers: Headers
+  public sealed class GetTrendTagsResponse : OperationResponse<List<Tag>> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetTrendTagsResponseSuccess(
-    public val body: List<Tag>,
+    override val body: List<Tag>,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetTrendTagsResponse() {
+  ) : GetTrendTagsResponse(),
+      OperationResponseSuccess<List<Tag>> {
     /**
      * Number of requests permitted per time period
      */
@@ -54,30 +60,37 @@ public interface TrendsApiV1TrendsTagsGetClient {
 
   @Serializable
   public data class GetTrendTagsResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetTrendTagsResponse()
+  ) : GetTrendTagsResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetTrendTagsResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetTrendTagsResponse()
+  ) : GetTrendTagsResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetTrendTagsResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetTrendTagsResponse()
+  ) : GetTrendTagsResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetTrendTagsResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetTrendTagsResponse()
+  ) : GetTrendTagsResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun TrendsApiV1TrendsTagsGetClient(configuration: ClientConfiguration = defaultClientConfiguration): TrendsApiV1TrendsTagsGetClient = DefaultTrendsApiV1TrendsTagsGetClient(configuration)

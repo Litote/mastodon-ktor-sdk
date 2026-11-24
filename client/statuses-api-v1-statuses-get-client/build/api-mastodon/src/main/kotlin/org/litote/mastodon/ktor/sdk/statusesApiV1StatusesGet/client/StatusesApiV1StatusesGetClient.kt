@@ -5,12 +5,17 @@ import io.ktor.client.request.`get`
 import io.ktor.http.Headers
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.Status
@@ -22,16 +27,17 @@ public interface StatusesApiV1StatusesGetClient {
   public suspend fun getStatuses(id: List<String>? = null): GetStatusesResponse
 
   @Serializable
-  public sealed class GetStatusesResponse {
-    public abstract val headers: Headers
+  public sealed class GetStatusesResponse : OperationResponse<List<Status>> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetStatusesResponseSuccess(
-    public val body: List<Status>,
+    override val body: List<Status>,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetStatusesResponse() {
+  ) : GetStatusesResponse(),
+      OperationResponseSuccess<List<Status>> {
     /**
      * Number of requests permitted per time period
      */
@@ -53,30 +59,37 @@ public interface StatusesApiV1StatusesGetClient {
 
   @Serializable
   public data class GetStatusesResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetStatusesResponse()
+  ) : GetStatusesResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetStatusesResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetStatusesResponse()
+  ) : GetStatusesResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetStatusesResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetStatusesResponse()
+  ) : GetStatusesResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetStatusesResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetStatusesResponse()
+  ) : GetStatusesResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun StatusesApiV1StatusesGetClient(configuration: ClientConfiguration = defaultClientConfiguration): StatusesApiV1StatusesGetClient = DefaultStatusesApiV1StatusesGetClient(configuration)

@@ -9,6 +9,7 @@ import io.ktor.http.contentType
 import kotlin.Boolean
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.SerialName
@@ -16,6 +17,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedNotificationsapiv1notificationsget35be95f4.model.Report
 import org.litote.mastodon.ktor.sdk.sharedNotificationsapiv1notificationsget35be95f4.model.ReportCategoryEnum
@@ -40,16 +45,17 @@ public interface ReportsApiV1ReportsPostClient {
   )
 
   @Serializable
-  public sealed class CreateReportResponse {
-    public abstract val headers: Headers
+  public sealed class CreateReportResponse : OperationResponse<Report> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class CreateReportResponseSuccess(
-    public val body: Report,
+    override val body: Report,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateReportResponse() {
+  ) : CreateReportResponse(),
+      OperationResponseSuccess<Report> {
     /**
      * Number of requests permitted per time period
      */
@@ -71,23 +77,29 @@ public interface ReportsApiV1ReportsPostClient {
 
   @Serializable
   public data class CreateReportResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateReportResponse()
+  ) : CreateReportResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class CreateReportResponseFailure(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateReportResponse()
+  ) : CreateReportResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class CreateReportResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateReportResponse()
+  ) : CreateReportResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun ReportsApiV1ReportsPostClient(configuration: ClientConfiguration = defaultClientConfiguration): ReportsApiV1ReportsPostClient = DefaultReportsApiV1ReportsPostClient(configuration)

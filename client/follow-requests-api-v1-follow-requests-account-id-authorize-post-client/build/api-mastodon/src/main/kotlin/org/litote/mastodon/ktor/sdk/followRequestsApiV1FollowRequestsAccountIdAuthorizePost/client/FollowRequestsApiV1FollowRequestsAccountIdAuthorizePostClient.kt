@@ -6,11 +6,16 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidblockpostBcce5a7a.model.Relationship
@@ -22,16 +27,17 @@ public interface FollowRequestsApiV1FollowRequestsAccountIdAuthorizePostClient {
   public suspend fun postFollowRequestAuthorize(accountId: String): PostFollowRequestAuthorizeResponse
 
   @Serializable
-  public sealed class PostFollowRequestAuthorizeResponse {
-    public abstract val headers: Headers
+  public sealed class PostFollowRequestAuthorizeResponse : OperationResponse<Relationship> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class PostFollowRequestAuthorizeResponseSuccess(
-    public val body: Relationship,
+    override val body: Relationship,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostFollowRequestAuthorizeResponse() {
+  ) : PostFollowRequestAuthorizeResponse(),
+      OperationResponseSuccess<Relationship> {
     /**
      * Number of requests permitted per time period
      */
@@ -53,30 +59,37 @@ public interface FollowRequestsApiV1FollowRequestsAccountIdAuthorizePostClient {
 
   @Serializable
   public data class PostFollowRequestAuthorizeResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostFollowRequestAuthorizeResponse()
+  ) : PostFollowRequestAuthorizeResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class PostFollowRequestAuthorizeResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostFollowRequestAuthorizeResponse()
+  ) : PostFollowRequestAuthorizeResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class PostFollowRequestAuthorizeResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostFollowRequestAuthorizeResponse()
+  ) : PostFollowRequestAuthorizeResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class PostFollowRequestAuthorizeResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostFollowRequestAuthorizeResponse()
+  ) : PostFollowRequestAuthorizeResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun FollowRequestsApiV1FollowRequestsAccountIdAuthorizePostClient(configuration: ClientConfiguration = defaultClientConfiguration): FollowRequestsApiV1FollowRequestsAccountIdAuthorizePostClient = DefaultFollowRequestsApiV1FollowRequestsAccountIdAuthorizePostClient(configuration)

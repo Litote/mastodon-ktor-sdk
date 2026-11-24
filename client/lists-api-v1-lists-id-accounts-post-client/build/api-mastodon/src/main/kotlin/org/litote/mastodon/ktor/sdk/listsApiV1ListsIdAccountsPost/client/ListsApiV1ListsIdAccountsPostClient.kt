@@ -9,6 +9,7 @@ import io.ktor.http.contentType
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.SerialName
@@ -16,6 +17,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 
 public interface ListsApiV1ListsIdAccountsPostClient {
@@ -31,15 +36,19 @@ public interface ListsApiV1ListsIdAccountsPostClient {
   )
 
   @Serializable
-  public sealed class PostListAccountsResponse {
-    public abstract val headers: Headers
+  public sealed class PostListAccountsResponse : OperationResponse<Unit> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class PostListAccountsResponseSuccess(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostListAccountsResponse() {
+  ) : PostListAccountsResponse(),
+      OperationResponseSuccess<Unit> {
+    override val body: Unit
+      get() = Unit
+
     /**
      * Number of requests permitted per time period
      */
@@ -61,23 +70,29 @@ public interface ListsApiV1ListsIdAccountsPostClient {
 
   @Serializable
   public data class PostListAccountsResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostListAccountsResponse()
+  ) : PostListAccountsResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class PostListAccountsResponseFailure(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostListAccountsResponse()
+  ) : PostListAccountsResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class PostListAccountsResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostListAccountsResponse()
+  ) : PostListAccountsResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun ListsApiV1ListsIdAccountsPostClient(configuration: ClientConfiguration = defaultClientConfiguration): ListsApiV1ListsIdAccountsPostClient = DefaultListsApiV1ListsIdAccountsPostClient(configuration)

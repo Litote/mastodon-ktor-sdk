@@ -6,11 +6,16 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedFiltersapiv1filtersget35506993.model.V1Filter
@@ -22,16 +27,17 @@ public interface FiltersApiV1FiltersIdGetClient {
   public suspend fun getFilter(id: String): GetFilterResponse
 
   @Serializable
-  public sealed class GetFilterResponse {
-    public abstract val headers: Headers
+  public sealed class GetFilterResponse : OperationResponse<V1Filter> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetFilterResponseSuccess(
-    public val body: V1Filter,
+    override val body: V1Filter,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetFilterResponse() {
+  ) : GetFilterResponse(),
+      OperationResponseSuccess<V1Filter> {
     /**
      * Number of requests permitted per time period
      */
@@ -53,30 +59,37 @@ public interface FiltersApiV1FiltersIdGetClient {
 
   @Serializable
   public data class GetFilterResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetFilterResponse()
+  ) : GetFilterResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetFilterResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetFilterResponse()
+  ) : GetFilterResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetFilterResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetFilterResponse()
+  ) : GetFilterResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetFilterResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetFilterResponse()
+  ) : GetFilterResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun FiltersApiV1FiltersIdGetClient(configuration: ClientConfiguration = defaultClientConfiguration): FiltersApiV1FiltersIdGetClient = DefaultFiltersApiV1FiltersIdGetClient(configuration)

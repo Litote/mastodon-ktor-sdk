@@ -6,11 +6,16 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.Status
@@ -22,16 +27,17 @@ public interface StatusesApiV1StatusesIdBookmarkPostClient {
   public suspend fun postStatusBookmark(id: String): PostStatusBookmarkResponse
 
   @Serializable
-  public sealed class PostStatusBookmarkResponse {
-    public abstract val headers: Headers
+  public sealed class PostStatusBookmarkResponse : OperationResponse<Status> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class PostStatusBookmarkResponseSuccess(
-    public val body: Status,
+    override val body: Status,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostStatusBookmarkResponse() {
+  ) : PostStatusBookmarkResponse(),
+      OperationResponseSuccess<Status> {
     /**
      * Number of requests permitted per time period
      */
@@ -53,30 +59,37 @@ public interface StatusesApiV1StatusesIdBookmarkPostClient {
 
   @Serializable
   public data class PostStatusBookmarkResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostStatusBookmarkResponse()
+  ) : PostStatusBookmarkResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class PostStatusBookmarkResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostStatusBookmarkResponse()
+  ) : PostStatusBookmarkResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class PostStatusBookmarkResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostStatusBookmarkResponse()
+  ) : PostStatusBookmarkResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class PostStatusBookmarkResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostStatusBookmarkResponse()
+  ) : PostStatusBookmarkResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun StatusesApiV1StatusesIdBookmarkPostClient(configuration: ClientConfiguration = defaultClientConfiguration): StatusesApiV1StatusesIdBookmarkPostClient = DefaultStatusesApiV1StatusesIdBookmarkPostClient(configuration)

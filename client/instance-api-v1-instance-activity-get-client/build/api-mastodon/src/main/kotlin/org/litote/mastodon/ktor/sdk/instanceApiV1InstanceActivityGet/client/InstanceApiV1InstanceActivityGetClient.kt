@@ -5,6 +5,7 @@ import io.ktor.client.request.`get`
 import io.ktor.http.Headers
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
@@ -12,6 +13,10 @@ import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonElement
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 
@@ -22,16 +27,17 @@ public interface InstanceApiV1InstanceActivityGetClient {
   public suspend fun getInstanceActivity(): GetInstanceActivityResponse
 
   @Serializable
-  public sealed class GetInstanceActivityResponse {
-    public abstract val headers: Headers
+  public sealed class GetInstanceActivityResponse : OperationResponse<List<JsonElement>> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetInstanceActivityResponseSuccess(
-    public val body: List<JsonElement>,
+    override val body: List<JsonElement>,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetInstanceActivityResponse() {
+  ) : GetInstanceActivityResponse(),
+      OperationResponseSuccess<List<JsonElement>> {
     /**
      * Number of requests permitted per time period
      */
@@ -53,30 +59,37 @@ public interface InstanceApiV1InstanceActivityGetClient {
 
   @Serializable
   public data class GetInstanceActivityResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetInstanceActivityResponse()
+  ) : GetInstanceActivityResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetInstanceActivityResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetInstanceActivityResponse()
+  ) : GetInstanceActivityResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetInstanceActivityResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetInstanceActivityResponse()
+  ) : GetInstanceActivityResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetInstanceActivityResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetInstanceActivityResponse()
+  ) : GetInstanceActivityResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun InstanceApiV1InstanceActivityGetClient(configuration: ClientConfiguration = defaultClientConfiguration): InstanceApiV1InstanceActivityGetClient = DefaultInstanceApiV1InstanceActivityGetClient(configuration)

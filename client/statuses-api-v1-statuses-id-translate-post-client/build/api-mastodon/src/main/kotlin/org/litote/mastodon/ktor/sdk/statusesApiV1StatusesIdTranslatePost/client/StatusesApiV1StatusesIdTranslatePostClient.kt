@@ -9,11 +9,16 @@ import io.ktor.http.contentType
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.model.Translation
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
@@ -30,16 +35,17 @@ public interface StatusesApiV1StatusesIdTranslatePostClient {
   )
 
   @Serializable
-  public sealed class PostStatusTranslateResponse {
-    public abstract val headers: Headers
+  public sealed class PostStatusTranslateResponse : OperationResponse<Translation> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class PostStatusTranslateResponseSuccess(
-    public val body: Translation,
+    override val body: Translation,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostStatusTranslateResponse() {
+  ) : PostStatusTranslateResponse(),
+      OperationResponseSuccess<Translation> {
     /**
      * Number of requests permitted per time period
      */
@@ -61,30 +67,37 @@ public interface StatusesApiV1StatusesIdTranslatePostClient {
 
   @Serializable
   public data class PostStatusTranslateResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostStatusTranslateResponse()
+  ) : PostStatusTranslateResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class PostStatusTranslateResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostStatusTranslateResponse()
+  ) : PostStatusTranslateResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class PostStatusTranslateResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostStatusTranslateResponse()
+  ) : PostStatusTranslateResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class PostStatusTranslateResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostStatusTranslateResponse()
+  ) : PostStatusTranslateResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun StatusesApiV1StatusesIdTranslatePostClient(configuration: ClientConfiguration = defaultClientConfiguration): StatusesApiV1StatusesIdTranslatePostClient = DefaultStatusesApiV1StatusesIdTranslatePostClient(configuration)

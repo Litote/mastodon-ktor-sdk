@@ -6,11 +6,16 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidblockpostBcce5a7a.model.Relationship
 
@@ -21,16 +26,17 @@ public interface AccountsApiV1AccountsIdUnblockPostClient {
   public suspend fun postAccountUnblock(id: String): PostAccountUnblockResponse
 
   @Serializable
-  public sealed class PostAccountUnblockResponse {
-    public abstract val headers: Headers
+  public sealed class PostAccountUnblockResponse : OperationResponse<Relationship> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class PostAccountUnblockResponseSuccess(
-    public val body: Relationship,
+    override val body: Relationship,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostAccountUnblockResponse() {
+  ) : PostAccountUnblockResponse(),
+      OperationResponseSuccess<Relationship> {
     /**
      * Number of requests permitted per time period
      */
@@ -52,23 +58,29 @@ public interface AccountsApiV1AccountsIdUnblockPostClient {
 
   @Serializable
   public data class PostAccountUnblockResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostAccountUnblockResponse()
+  ) : PostAccountUnblockResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class PostAccountUnblockResponseFailure(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostAccountUnblockResponse()
+  ) : PostAccountUnblockResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class PostAccountUnblockResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostAccountUnblockResponse()
+  ) : PostAccountUnblockResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun AccountsApiV1AccountsIdUnblockPostClient(configuration: ClientConfiguration = defaultClientConfiguration): AccountsApiV1AccountsIdUnblockPostClient = DefaultAccountsApiV1AccountsIdUnblockPostClient(configuration)

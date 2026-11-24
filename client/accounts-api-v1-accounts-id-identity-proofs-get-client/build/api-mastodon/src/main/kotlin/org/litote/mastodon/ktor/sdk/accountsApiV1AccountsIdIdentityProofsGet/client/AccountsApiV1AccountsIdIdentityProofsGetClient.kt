@@ -6,12 +6,17 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.model.IdentityProof
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 
@@ -22,16 +27,17 @@ public interface AccountsApiV1AccountsIdIdentityProofsGetClient {
   public suspend fun getAccountIdentityProofs(id: String): GetAccountIdentityProofsResponse
 
   @Serializable
-  public sealed class GetAccountIdentityProofsResponse {
-    public abstract val headers: Headers
+  public sealed class GetAccountIdentityProofsResponse : OperationResponse<List<IdentityProof>> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetAccountIdentityProofsResponseSuccess(
-    public val body: List<IdentityProof>,
+    override val body: List<IdentityProof>,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAccountIdentityProofsResponse() {
+  ) : GetAccountIdentityProofsResponse(),
+      OperationResponseSuccess<List<IdentityProof>> {
     /**
      * Number of requests permitted per time period
      */
@@ -53,23 +59,29 @@ public interface AccountsApiV1AccountsIdIdentityProofsGetClient {
 
   @Serializable
   public data class GetAccountIdentityProofsResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAccountIdentityProofsResponse()
+  ) : GetAccountIdentityProofsResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetAccountIdentityProofsResponseFailure(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAccountIdentityProofsResponse()
+  ) : GetAccountIdentityProofsResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetAccountIdentityProofsResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAccountIdentityProofsResponse()
+  ) : GetAccountIdentityProofsResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun AccountsApiV1AccountsIdIdentityProofsGetClient(configuration: ClientConfiguration = defaultClientConfiguration): AccountsApiV1AccountsIdIdentityProofsGetClient = DefaultAccountsApiV1AccountsIdIdentityProofsGetClient(configuration)

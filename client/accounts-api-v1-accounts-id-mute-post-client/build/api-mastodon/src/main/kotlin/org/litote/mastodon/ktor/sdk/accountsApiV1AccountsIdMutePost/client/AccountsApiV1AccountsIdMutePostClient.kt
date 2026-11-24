@@ -11,11 +11,16 @@ import kotlin.Boolean
 import kotlin.Int
 import kotlin.Long
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidblockpostBcce5a7a.model.Relationship
 
@@ -32,16 +37,17 @@ public interface AccountsApiV1AccountsIdMutePostClient {
   )
 
   @Serializable
-  public sealed class PostAccountMuteResponse {
-    public abstract val headers: Headers
+  public sealed class PostAccountMuteResponse : OperationResponse<Relationship> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class PostAccountMuteResponseSuccess(
-    public val body: Relationship,
+    override val body: Relationship,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostAccountMuteResponse() {
+  ) : PostAccountMuteResponse(),
+      OperationResponseSuccess<Relationship> {
     /**
      * Number of requests permitted per time period
      */
@@ -63,23 +69,29 @@ public interface AccountsApiV1AccountsIdMutePostClient {
 
   @Serializable
   public data class PostAccountMuteResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostAccountMuteResponse()
+  ) : PostAccountMuteResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class PostAccountMuteResponseFailure(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostAccountMuteResponse()
+  ) : PostAccountMuteResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class PostAccountMuteResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostAccountMuteResponse()
+  ) : PostAccountMuteResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun AccountsApiV1AccountsIdMutePostClient(configuration: ClientConfiguration = defaultClientConfiguration): AccountsApiV1AccountsIdMutePostClient = DefaultAccountsApiV1AccountsIdMutePostClient(configuration)

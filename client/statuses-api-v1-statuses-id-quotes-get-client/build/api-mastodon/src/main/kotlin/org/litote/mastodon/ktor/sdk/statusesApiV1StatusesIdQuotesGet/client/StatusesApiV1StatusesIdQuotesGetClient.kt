@@ -7,12 +7,17 @@ import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.Long
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.Status
@@ -29,16 +34,17 @@ public interface StatusesApiV1StatusesIdQuotesGetClient {
   ): GetStatusQuotesResponse
 
   @Serializable
-  public sealed class GetStatusQuotesResponse {
-    public abstract val headers: Headers
+  public sealed class GetStatusQuotesResponse : OperationResponse<List<Status>> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetStatusQuotesResponseSuccess(
-    public val body: List<Status>,
+    override val body: List<Status>,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetStatusQuotesResponse() {
+  ) : GetStatusQuotesResponse(),
+      OperationResponseSuccess<List<Status>> {
     /**
      * Pagination links for browsing older or newer results. Format: Link: <https://mastodon.example/api/v1/endpoint?max_id=7163058>; rel="next", <https://mastodon.example/api/v1/endpoint?min_id=7275607>; rel="prev". See [RFC 8288](https://www.rfc-editor.org/rfc/rfc8288) for more information.
      */
@@ -66,30 +72,37 @@ public interface StatusesApiV1StatusesIdQuotesGetClient {
 
   @Serializable
   public data class GetStatusQuotesResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetStatusQuotesResponse()
+  ) : GetStatusQuotesResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetStatusQuotesResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetStatusQuotesResponse()
+  ) : GetStatusQuotesResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetStatusQuotesResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetStatusQuotesResponse()
+  ) : GetStatusQuotesResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetStatusQuotesResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetStatusQuotesResponse()
+  ) : GetStatusQuotesResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun StatusesApiV1StatusesIdQuotesGetClient(configuration: ClientConfiguration = defaultClientConfiguration): StatusesApiV1StatusesIdQuotesGetClient = DefaultStatusesApiV1StatusesIdQuotesGetClient(configuration)

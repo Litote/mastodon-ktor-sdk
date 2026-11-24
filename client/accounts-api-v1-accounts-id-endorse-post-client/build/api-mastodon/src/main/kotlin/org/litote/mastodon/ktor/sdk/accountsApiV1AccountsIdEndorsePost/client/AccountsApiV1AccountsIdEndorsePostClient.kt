@@ -6,11 +6,16 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidblockpostBcce5a7a.model.Relationship
 
@@ -21,16 +26,17 @@ public interface AccountsApiV1AccountsIdEndorsePostClient {
   public suspend fun postAccountEndorse(id: String): PostAccountEndorseResponse
 
   @Serializable
-  public sealed class PostAccountEndorseResponse {
-    public abstract val headers: Headers
+  public sealed class PostAccountEndorseResponse : OperationResponse<Relationship> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class PostAccountEndorseResponseSuccess(
-    public val body: Relationship,
+    override val body: Relationship,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostAccountEndorseResponse() {
+  ) : PostAccountEndorseResponse(),
+      OperationResponseSuccess<Relationship> {
     /**
      * Number of requests permitted per time period
      */
@@ -52,23 +58,29 @@ public interface AccountsApiV1AccountsIdEndorsePostClient {
 
   @Serializable
   public data class PostAccountEndorseResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostAccountEndorseResponse()
+  ) : PostAccountEndorseResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class PostAccountEndorseResponseFailure(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostAccountEndorseResponse()
+  ) : PostAccountEndorseResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class PostAccountEndorseResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostAccountEndorseResponse()
+  ) : PostAccountEndorseResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun AccountsApiV1AccountsIdEndorsePostClient(configuration: ClientConfiguration = defaultClientConfiguration): AccountsApiV1AccountsIdEndorsePostClient = DefaultAccountsApiV1AccountsIdEndorsePostClient(configuration)

@@ -9,6 +9,7 @@ import io.ktor.http.contentType
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.SerialName
@@ -16,6 +17,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 
@@ -32,15 +37,19 @@ public interface ListsApiV1ListsIdAccountsDeleteClient {
   )
 
   @Serializable
-  public sealed class DeleteListAccountsResponse {
-    public abstract val headers: Headers
+  public sealed class DeleteListAccountsResponse : OperationResponse<Unit> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class DeleteListAccountsResponseSuccess(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteListAccountsResponse() {
+  ) : DeleteListAccountsResponse(),
+      OperationResponseSuccess<Unit> {
+    override val body: Unit
+      get() = Unit
+
     /**
      * Number of requests permitted per time period
      */
@@ -62,30 +71,37 @@ public interface ListsApiV1ListsIdAccountsDeleteClient {
 
   @Serializable
   public data class DeleteListAccountsResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteListAccountsResponse()
+  ) : DeleteListAccountsResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class DeleteListAccountsResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteListAccountsResponse()
+  ) : DeleteListAccountsResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class DeleteListAccountsResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteListAccountsResponse()
+  ) : DeleteListAccountsResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class DeleteListAccountsResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteListAccountsResponse()
+  ) : DeleteListAccountsResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun ListsApiV1ListsIdAccountsDeleteClient(configuration: ClientConfiguration = defaultClientConfiguration): ListsApiV1ListsIdAccountsDeleteClient = DefaultListsApiV1ListsIdAccountsDeleteClient(configuration)

@@ -6,11 +6,16 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedFeaturedtagsapiv1featuredtagssuggestionsget1c497d1f.model.Tag
@@ -22,16 +27,17 @@ public interface TagsApiV1TagsIdFeaturePostClient {
   public suspend fun postTagFeature(id: String): PostTagFeatureResponse
 
   @Serializable
-  public sealed class PostTagFeatureResponse {
-    public abstract val headers: Headers
+  public sealed class PostTagFeatureResponse : OperationResponse<Tag> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class PostTagFeatureResponseSuccess(
-    public val body: Tag,
+    override val body: Tag,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostTagFeatureResponse() {
+  ) : PostTagFeatureResponse(),
+      OperationResponseSuccess<Tag> {
     /**
      * Number of requests permitted per time period
      */
@@ -53,30 +59,37 @@ public interface TagsApiV1TagsIdFeaturePostClient {
 
   @Serializable
   public data class PostTagFeatureResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostTagFeatureResponse()
+  ) : PostTagFeatureResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class PostTagFeatureResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostTagFeatureResponse()
+  ) : PostTagFeatureResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class PostTagFeatureResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostTagFeatureResponse()
+  ) : PostTagFeatureResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class PostTagFeatureResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostTagFeatureResponse()
+  ) : PostTagFeatureResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun TagsApiV1TagsIdFeaturePostClient(configuration: ClientConfiguration = defaultClientConfiguration): TagsApiV1TagsIdFeaturePostClient = DefaultTagsApiV1TagsIdFeaturePostClient(configuration)

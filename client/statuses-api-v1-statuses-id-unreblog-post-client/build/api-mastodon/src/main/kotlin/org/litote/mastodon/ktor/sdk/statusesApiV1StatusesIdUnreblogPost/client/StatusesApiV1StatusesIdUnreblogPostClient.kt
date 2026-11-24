@@ -6,11 +6,16 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.Status
@@ -22,16 +27,17 @@ public interface StatusesApiV1StatusesIdUnreblogPostClient {
   public suspend fun postStatusUnreblog(id: String): PostStatusUnreblogResponse
 
   @Serializable
-  public sealed class PostStatusUnreblogResponse {
-    public abstract val headers: Headers
+  public sealed class PostStatusUnreblogResponse : OperationResponse<Status> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class PostStatusUnreblogResponseSuccess(
-    public val body: Status,
+    override val body: Status,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostStatusUnreblogResponse() {
+  ) : PostStatusUnreblogResponse(),
+      OperationResponseSuccess<Status> {
     /**
      * Number of requests permitted per time period
      */
@@ -53,30 +59,37 @@ public interface StatusesApiV1StatusesIdUnreblogPostClient {
 
   @Serializable
   public data class PostStatusUnreblogResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostStatusUnreblogResponse()
+  ) : PostStatusUnreblogResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class PostStatusUnreblogResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostStatusUnreblogResponse()
+  ) : PostStatusUnreblogResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class PostStatusUnreblogResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostStatusUnreblogResponse()
+  ) : PostStatusUnreblogResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class PostStatusUnreblogResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PostStatusUnreblogResponse()
+  ) : PostStatusUnreblogResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun StatusesApiV1StatusesIdUnreblogPostClient(configuration: ClientConfiguration = defaultClientConfiguration): StatusesApiV1StatusesIdUnreblogPostClient = DefaultStatusesApiV1StatusesIdUnreblogPostClient(configuration)

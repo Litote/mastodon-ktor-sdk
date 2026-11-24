@@ -6,11 +6,16 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.ScheduledStatus
@@ -22,16 +27,17 @@ public interface ScheduledStatusesApiV1ScheduledStatusesIdGetClient {
   public suspend fun getScheduledStatus(id: String): GetScheduledStatusResponse
 
   @Serializable
-  public sealed class GetScheduledStatusResponse {
-    public abstract val headers: Headers
+  public sealed class GetScheduledStatusResponse : OperationResponse<ScheduledStatus> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetScheduledStatusResponseSuccess(
-    public val body: ScheduledStatus,
+    override val body: ScheduledStatus,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetScheduledStatusResponse() {
+  ) : GetScheduledStatusResponse(),
+      OperationResponseSuccess<ScheduledStatus> {
     /**
      * Number of requests permitted per time period
      */
@@ -53,30 +59,37 @@ public interface ScheduledStatusesApiV1ScheduledStatusesIdGetClient {
 
   @Serializable
   public data class GetScheduledStatusResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetScheduledStatusResponse()
+  ) : GetScheduledStatusResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetScheduledStatusResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetScheduledStatusResponse()
+  ) : GetScheduledStatusResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetScheduledStatusResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetScheduledStatusResponse()
+  ) : GetScheduledStatusResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetScheduledStatusResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetScheduledStatusResponse()
+  ) : GetScheduledStatusResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun ScheduledStatusesApiV1ScheduledStatusesIdGetClient(configuration: ClientConfiguration = defaultClientConfiguration): ScheduledStatusesApiV1ScheduledStatusesIdGetClient = DefaultScheduledStatusesApiV1ScheduledStatusesIdGetClient(configuration)

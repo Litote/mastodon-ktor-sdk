@@ -6,12 +6,17 @@ import io.ktor.http.Headers
 import kotlin.Int
 import kotlin.Long
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.Status
@@ -29,16 +34,17 @@ public interface TimelinesApiV1TimelinesLinkGetClient {
   ): GetTimelineLinkResponse
 
   @Serializable
-  public sealed class GetTimelineLinkResponse {
-    public abstract val headers: Headers
+  public sealed class GetTimelineLinkResponse : OperationResponse<List<Status>> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetTimelineLinkResponseSuccess(
-    public val body: List<Status>,
+    override val body: List<Status>,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetTimelineLinkResponse() {
+  ) : GetTimelineLinkResponse(),
+      OperationResponseSuccess<List<Status>> {
     /**
      * Pagination links for browsing older or newer results. Format: Link: <https://mastodon.example/api/v1/endpoint?max_id=7163058>; rel="next", <https://mastodon.example/api/v1/endpoint?min_id=7275607>; rel="prev". See [RFC 8288](https://www.rfc-editor.org/rfc/rfc8288) for more information.
      */
@@ -66,30 +72,37 @@ public interface TimelinesApiV1TimelinesLinkGetClient {
 
   @Serializable
   public data class GetTimelineLinkResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetTimelineLinkResponse()
+  ) : GetTimelineLinkResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetTimelineLinkResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetTimelineLinkResponse()
+  ) : GetTimelineLinkResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetTimelineLinkResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetTimelineLinkResponse()
+  ) : GetTimelineLinkResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetTimelineLinkResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetTimelineLinkResponse()
+  ) : GetTimelineLinkResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun TimelinesApiV1TimelinesLinkGetClient(configuration: ClientConfiguration = defaultClientConfiguration): TimelinesApiV1TimelinesLinkGetClient = DefaultTimelinesApiV1TimelinesLinkGetClient(configuration)

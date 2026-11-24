@@ -5,11 +5,16 @@ import io.ktor.client.request.`get`
 import io.ktor.http.Headers
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.model.Instance
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
@@ -21,16 +26,17 @@ public interface InstanceApiV2InstanceGetClient {
   public suspend fun getInstanceV2(): GetInstanceV2Response
 
   @Serializable
-  public sealed class GetInstanceV2Response {
-    public abstract val headers: Headers
+  public sealed class GetInstanceV2Response : OperationResponse<Instance> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetInstanceV2ResponseSuccess(
-    public val body: Instance,
+    override val body: Instance,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetInstanceV2Response() {
+  ) : GetInstanceV2Response(),
+      OperationResponseSuccess<Instance> {
     /**
      * Number of requests permitted per time period
      */
@@ -52,30 +58,37 @@ public interface InstanceApiV2InstanceGetClient {
 
   @Serializable
   public data class GetInstanceV2ResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetInstanceV2Response()
+  ) : GetInstanceV2Response(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetInstanceV2ResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetInstanceV2Response()
+  ) : GetInstanceV2Response(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetInstanceV2ResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetInstanceV2Response()
+  ) : GetInstanceV2Response(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetInstanceV2ResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetInstanceV2Response()
+  ) : GetInstanceV2Response(),
+      OperationResponseUnknownFailure
 }
 
 public fun InstanceApiV2InstanceGetClient(configuration: ClientConfiguration = defaultClientConfiguration): InstanceApiV2InstanceGetClient = DefaultInstanceApiV2InstanceGetClient(configuration)

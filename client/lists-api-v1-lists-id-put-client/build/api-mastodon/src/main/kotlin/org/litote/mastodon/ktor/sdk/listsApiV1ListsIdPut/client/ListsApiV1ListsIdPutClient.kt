@@ -10,12 +10,17 @@ import io.ktor.http.encodeURLPathPart
 import kotlin.Boolean
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidlistsgetDaf64318.model.List
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidlistsgetDaf64318.model.ListRepliesPolicyEnum
@@ -35,16 +40,17 @@ public interface ListsApiV1ListsIdPutClient {
   )
 
   @Serializable
-  public sealed class UpdateListResponse {
-    public abstract val headers: Headers
+  public sealed class UpdateListResponse : OperationResponse<List> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class UpdateListResponseSuccess(
-    public val body: List,
+    override val body: List,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : UpdateListResponse() {
+  ) : UpdateListResponse(),
+      OperationResponseSuccess<List> {
     /**
      * Number of requests permitted per time period
      */
@@ -66,23 +72,29 @@ public interface ListsApiV1ListsIdPutClient {
 
   @Serializable
   public data class UpdateListResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : UpdateListResponse()
+  ) : UpdateListResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class UpdateListResponseFailure(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : UpdateListResponse()
+  ) : UpdateListResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class UpdateListResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : UpdateListResponse()
+  ) : UpdateListResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun ListsApiV1ListsIdPutClient(configuration: ClientConfiguration = defaultClientConfiguration): ListsApiV1ListsIdPutClient = DefaultListsApiV1ListsIdPutClient(configuration)
