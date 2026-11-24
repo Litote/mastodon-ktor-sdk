@@ -48,6 +48,11 @@ mastodon-ktor-sdk/
 | `project-convention` | Sets `group` and `version` from `gradle.properties` |
 | `signing-convention` | GPG signing via `gpg` command |
 
+Version catalogs: `openapi` (imported from the generator's `version-catalog` artifact in `settings.gradle.kts`) provides
+Kotlin / Ktor / coroutines / serialization versions; `ktor-client-mock` and `coroutines-test` are added to it there via
+`versionRef` so tests run on the same Ktor / coroutines versions as the generated clients. Never redeclare those
+versions in `gradle/libs.versions.toml` (it holds the other dependencies only).
+
 All modules (generated and hand-written) apply `kotlin-convention`, except `gradle-plugin` which uses `kotlin("jvm")` directly (Gradle plugin constraints), `openapi` (`java-library`, publishes the spec) and `samples/*` (`kotlin("jvm")`, not published).
 
 ---

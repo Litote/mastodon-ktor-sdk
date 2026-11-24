@@ -137,6 +137,12 @@ The KDoc of the hand-written modules is aggregated by Dokka (`./gradlew dokkaGen
 
 ## Update dependencies
 
+Kotlin, Ktor, coroutines and kotlinx-serialization versions come from the generator's version catalog (`openapi`,
+imported in `settings.gradle.kts` at the `generator` version of `gradle/libs.versions.toml`): they are upgraded by
+bumping `generator`. Libraries of these families that the generator catalog does not provide (`ktor-client-mock`,
+`kotlinx-coroutines-test`) are added to the `openapi` catalog in `settings.gradle.kts` with a `versionRef`, so that
+they stay aligned. `gradle/libs.versions.toml` only holds the other dependencies.
+
 ```bash
 # 1. Update version catalog to latest available versions
 ./gradlew versionCatalogUpdate --dependency-verification lenient
