@@ -12,7 +12,7 @@ jobs:
     if: github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: read
-    uses: Litote/ci/.github/workflows/gradle-verification.yml@15172a08495ba5ce96b92c224ede2d102174803f # v0.12.0
+    uses: Litote/ci/.github/workflows/gradle-verification.yml@0200d5384e9bb08b678a219212a11544c1389f9f # v0.14.0
     with:
       # check regenerates the clients: a generator bump commits them with the verification metadata
       commit-paths: client sdk/api/build
