@@ -9,6 +9,7 @@ import io.ktor.http.contentType
 import kotlin.Boolean
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.SerialName
@@ -17,6 +18,10 @@ import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonElement
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget4016b7e9.model.StatusVisibilityEnum
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsupdatecredentialspatch02a06ece.model.CredentialAccount
@@ -57,16 +62,17 @@ public interface AccountsApiV1AccountsUpdateCredentialsPatchClient {
   }
 
   @Serializable
-  public sealed class PatchAccountsUpdateCredentialsResponse {
-    public abstract val headers: Headers
+  public sealed class PatchAccountsUpdateCredentialsResponse : OperationResponse<CredentialAccount> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class PatchAccountsUpdateCredentialsResponseSuccess(
-    public val body: CredentialAccount,
+    override val body: CredentialAccount,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PatchAccountsUpdateCredentialsResponse() {
+  ) : PatchAccountsUpdateCredentialsResponse(),
+      OperationResponseSuccess<CredentialAccount> {
     /**
      * Number of requests permitted per time period
      */
@@ -88,23 +94,29 @@ public interface AccountsApiV1AccountsUpdateCredentialsPatchClient {
 
   @Serializable
   public data class PatchAccountsUpdateCredentialsResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PatchAccountsUpdateCredentialsResponse()
+  ) : PatchAccountsUpdateCredentialsResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class PatchAccountsUpdateCredentialsResponseFailure(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PatchAccountsUpdateCredentialsResponse()
+  ) : PatchAccountsUpdateCredentialsResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class PatchAccountsUpdateCredentialsResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : PatchAccountsUpdateCredentialsResponse()
+  ) : PatchAccountsUpdateCredentialsResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun AccountsApiV1AccountsUpdateCredentialsPatchClient(configuration: ClientConfiguration = defaultClientConfiguration): AccountsApiV1AccountsUpdateCredentialsPatchClient = DefaultAccountsApiV1AccountsUpdateCredentialsPatchClient(configuration)

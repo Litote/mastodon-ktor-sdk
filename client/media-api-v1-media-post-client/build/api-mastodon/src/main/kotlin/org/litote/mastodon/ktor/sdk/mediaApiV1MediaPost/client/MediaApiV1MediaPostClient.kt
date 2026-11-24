@@ -11,11 +11,16 @@ import io.ktor.http.HttpHeaders
 import kotlin.ByteArray
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesgetDdf78166.model.MediaAttachment
 
@@ -39,16 +44,17 @@ public interface MediaApiV1MediaPostClient {
   )
 
   @Serializable
-  public sealed class CreateMediaResponse {
-    public abstract val headers: Headers
+  public sealed class CreateMediaResponse : OperationResponse<MediaAttachment> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class CreateMediaResponseSuccess(
-    public val body: MediaAttachment,
+    override val body: MediaAttachment,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateMediaResponse() {
+  ) : CreateMediaResponse(),
+      OperationResponseSuccess<MediaAttachment> {
     /**
      * Number of requests permitted per time period
      */
@@ -70,23 +76,29 @@ public interface MediaApiV1MediaPostClient {
 
   @Serializable
   public data class CreateMediaResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateMediaResponse()
+  ) : CreateMediaResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class CreateMediaResponseFailure(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateMediaResponse()
+  ) : CreateMediaResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class CreateMediaResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateMediaResponse()
+  ) : CreateMediaResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun MediaApiV1MediaPostClient(configuration: ClientConfiguration = defaultClientConfiguration): MediaApiV1MediaPostClient = DefaultMediaApiV1MediaPostClient(configuration)

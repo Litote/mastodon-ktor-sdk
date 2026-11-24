@@ -6,12 +6,17 @@ import io.ktor.http.Headers
 import kotlin.Int
 import kotlin.Long
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedNotificationsapiv1notificationsunreadcountget188564c9.model.CountResponse
@@ -28,16 +33,17 @@ public interface NotificationsApiV1NotificationsUnreadCountGetClient {
   ): GetNotificationsUnreadCountResponse
 
   @Serializable
-  public sealed class GetNotificationsUnreadCountResponse {
-    public abstract val headers: Headers
+  public sealed class GetNotificationsUnreadCountResponse : OperationResponse<CountResponse> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetNotificationsUnreadCountResponseSuccess(
-    public val body: CountResponse,
+    override val body: CountResponse,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsUnreadCountResponse() {
+  ) : GetNotificationsUnreadCountResponse(),
+      OperationResponseSuccess<CountResponse> {
     /**
      * Number of requests permitted per time period
      */
@@ -59,30 +65,37 @@ public interface NotificationsApiV1NotificationsUnreadCountGetClient {
 
   @Serializable
   public data class GetNotificationsUnreadCountResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsUnreadCountResponse()
+  ) : GetNotificationsUnreadCountResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetNotificationsUnreadCountResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsUnreadCountResponse()
+  ) : GetNotificationsUnreadCountResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetNotificationsUnreadCountResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsUnreadCountResponse()
+  ) : GetNotificationsUnreadCountResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetNotificationsUnreadCountResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsUnreadCountResponse()
+  ) : GetNotificationsUnreadCountResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun NotificationsApiV1NotificationsUnreadCountGetClient(configuration: ClientConfiguration = defaultClientConfiguration): NotificationsApiV1NotificationsUnreadCountGetClient = DefaultNotificationsApiV1NotificationsUnreadCountGetClient(configuration)

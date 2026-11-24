@@ -6,11 +6,16 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedNotificationsapiv1notificationsrequestsget7fa167cd.model.NotificationRequest
@@ -22,16 +27,17 @@ public interface NotificationsApiV1NotificationsRequestsIdGetClient {
   public suspend fun getNotificationsRequestsById(id: String): GetNotificationsRequestsByIdResponse
 
   @Serializable
-  public sealed class GetNotificationsRequestsByIdResponse {
-    public abstract val headers: Headers
+  public sealed class GetNotificationsRequestsByIdResponse : OperationResponse<NotificationRequest> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetNotificationsRequestsByIdResponseSuccess(
-    public val body: NotificationRequest,
+    override val body: NotificationRequest,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsRequestsByIdResponse() {
+  ) : GetNotificationsRequestsByIdResponse(),
+      OperationResponseSuccess<NotificationRequest> {
     /**
      * Number of requests permitted per time period
      */
@@ -53,30 +59,37 @@ public interface NotificationsApiV1NotificationsRequestsIdGetClient {
 
   @Serializable
   public data class GetNotificationsRequestsByIdResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsRequestsByIdResponse()
+  ) : GetNotificationsRequestsByIdResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetNotificationsRequestsByIdResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsRequestsByIdResponse()
+  ) : GetNotificationsRequestsByIdResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetNotificationsRequestsByIdResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsRequestsByIdResponse()
+  ) : GetNotificationsRequestsByIdResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetNotificationsRequestsByIdResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsRequestsByIdResponse()
+  ) : GetNotificationsRequestsByIdResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun NotificationsApiV1NotificationsRequestsIdGetClient(configuration: ClientConfiguration = defaultClientConfiguration): NotificationsApiV1NotificationsRequestsIdGetClient = DefaultNotificationsApiV1NotificationsRequestsIdGetClient(configuration)

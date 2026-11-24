@@ -6,11 +6,16 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.model.Context
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
@@ -22,16 +27,17 @@ public interface StatusesApiV1StatusesIdContextGetClient {
   public suspend fun getStatusContext(id: String): GetStatusContextResponse
 
   @Serializable
-  public sealed class GetStatusContextResponse {
-    public abstract val headers: Headers
+  public sealed class GetStatusContextResponse : OperationResponse<Context> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetStatusContextResponseSuccess(
-    public val body: Context,
+    override val body: Context,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetStatusContextResponse() {
+  ) : GetStatusContextResponse(),
+      OperationResponseSuccess<Context> {
     /**
      * Indicates an async refresh is in progress. Format: id="<string>", retry=<int>, result_count=<int>. The retry value indicates seconds to wait before retrying. The result_count is optional and indicates results already fetched.
      */
@@ -59,30 +65,37 @@ public interface StatusesApiV1StatusesIdContextGetClient {
 
   @Serializable
   public data class GetStatusContextResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetStatusContextResponse()
+  ) : GetStatusContextResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetStatusContextResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetStatusContextResponse()
+  ) : GetStatusContextResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetStatusContextResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetStatusContextResponse()
+  ) : GetStatusContextResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetStatusContextResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetStatusContextResponse()
+  ) : GetStatusContextResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun StatusesApiV1StatusesIdContextGetClient(configuration: ClientConfiguration = defaultClientConfiguration): StatusesApiV1StatusesIdContextGetClient = DefaultStatusesApiV1StatusesIdContextGetClient(configuration)

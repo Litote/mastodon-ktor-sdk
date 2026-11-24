@@ -6,11 +6,16 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidlistsgetDaf64318.model.List
@@ -22,16 +27,17 @@ public interface ListsApiV1ListsIdGetClient {
   public suspend fun getList(id: String): GetListResponse
 
   @Serializable
-  public sealed class GetListResponse {
-    public abstract val headers: Headers
+  public sealed class GetListResponse : OperationResponse<List> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetListResponseSuccess(
-    public val body: List,
+    override val body: List,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetListResponse() {
+  ) : GetListResponse(),
+      OperationResponseSuccess<List> {
     /**
      * Number of requests permitted per time period
      */
@@ -53,30 +59,37 @@ public interface ListsApiV1ListsIdGetClient {
 
   @Serializable
   public data class GetListResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetListResponse()
+  ) : GetListResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetListResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetListResponse()
+  ) : GetListResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetListResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetListResponse()
+  ) : GetListResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetListResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetListResponse()
+  ) : GetListResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun ListsApiV1ListsIdGetClient(configuration: ClientConfiguration = defaultClientConfiguration): ListsApiV1ListsIdGetClient = DefaultListsApiV1ListsIdGetClient(configuration)

@@ -5,12 +5,17 @@ import io.ktor.client.request.`get`
 import io.ktor.http.Headers
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.model.FamiliarFollowers
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 
@@ -21,16 +26,17 @@ public interface AccountsApiV1AccountsFamiliarFollowersGetClient {
   public suspend fun getAccountsFamiliarFollowers(id: List<String>? = null): GetAccountsFamiliarFollowersResponse
 
   @Serializable
-  public sealed class GetAccountsFamiliarFollowersResponse {
-    public abstract val headers: Headers
+  public sealed class GetAccountsFamiliarFollowersResponse : OperationResponse<List<FamiliarFollowers>> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetAccountsFamiliarFollowersResponseSuccess(
-    public val body: List<FamiliarFollowers>,
+    override val body: List<FamiliarFollowers>,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAccountsFamiliarFollowersResponse() {
+  ) : GetAccountsFamiliarFollowersResponse(),
+      OperationResponseSuccess<List<FamiliarFollowers>> {
     /**
      * Number of requests permitted per time period
      */
@@ -52,23 +58,29 @@ public interface AccountsApiV1AccountsFamiliarFollowersGetClient {
 
   @Serializable
   public data class GetAccountsFamiliarFollowersResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAccountsFamiliarFollowersResponse()
+  ) : GetAccountsFamiliarFollowersResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetAccountsFamiliarFollowersResponseFailure(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAccountsFamiliarFollowersResponse()
+  ) : GetAccountsFamiliarFollowersResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetAccountsFamiliarFollowersResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAccountsFamiliarFollowersResponse()
+  ) : GetAccountsFamiliarFollowersResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun AccountsApiV1AccountsFamiliarFollowersGetClient(configuration: ClientConfiguration = defaultClientConfiguration): AccountsApiV1AccountsFamiliarFollowersGetClient = DefaultAccountsApiV1AccountsFamiliarFollowersGetClient(configuration)

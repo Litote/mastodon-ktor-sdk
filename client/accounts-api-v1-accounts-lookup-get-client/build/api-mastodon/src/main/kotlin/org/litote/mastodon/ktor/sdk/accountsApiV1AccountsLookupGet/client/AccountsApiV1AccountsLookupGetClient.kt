@@ -5,11 +5,16 @@ import io.ktor.client.request.`get`
 import io.ktor.http.Headers
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersgetB7d593a6.model.Account
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
@@ -21,16 +26,17 @@ public interface AccountsApiV1AccountsLookupGetClient {
   public suspend fun getAccountLookup(acct: String): GetAccountLookupResponse
 
   @Serializable
-  public sealed class GetAccountLookupResponse {
-    public abstract val headers: Headers
+  public sealed class GetAccountLookupResponse : OperationResponse<Account> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetAccountLookupResponseSuccess(
-    public val body: Account,
+    override val body: Account,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAccountLookupResponse() {
+  ) : GetAccountLookupResponse(),
+      OperationResponseSuccess<Account> {
     /**
      * Number of requests permitted per time period
      */
@@ -52,30 +58,37 @@ public interface AccountsApiV1AccountsLookupGetClient {
 
   @Serializable
   public data class GetAccountLookupResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAccountLookupResponse()
+  ) : GetAccountLookupResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetAccountLookupResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAccountLookupResponse()
+  ) : GetAccountLookupResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetAccountLookupResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAccountLookupResponse()
+  ) : GetAccountLookupResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetAccountLookupResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAccountLookupResponse()
+  ) : GetAccountLookupResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun AccountsApiV1AccountsLookupGetClient(configuration: ClientConfiguration = defaultClientConfiguration): AccountsApiV1AccountsLookupGetClient = DefaultAccountsApiV1AccountsLookupGetClient(configuration)

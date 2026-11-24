@@ -6,11 +6,16 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersgetB7d593a6.model.Account
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
@@ -22,16 +27,17 @@ public interface AccountsApiV1AccountsIdGetClient {
   public suspend fun getAccount(id: String): GetAccountResponse
 
   @Serializable
-  public sealed class GetAccountResponse {
-    public abstract val headers: Headers
+  public sealed class GetAccountResponse : OperationResponse<Account> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetAccountResponseSuccess(
-    public val body: Account,
+    override val body: Account,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAccountResponse() {
+  ) : GetAccountResponse(),
+      OperationResponseSuccess<Account> {
     /**
      * Number of requests permitted per time period
      */
@@ -53,30 +59,37 @@ public interface AccountsApiV1AccountsIdGetClient {
 
   @Serializable
   public data class GetAccountResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAccountResponse()
+  ) : GetAccountResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetAccountResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAccountResponse()
+  ) : GetAccountResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetAccountResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAccountResponse()
+  ) : GetAccountResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetAccountResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetAccountResponse()
+  ) : GetAccountResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun AccountsApiV1AccountsIdGetClient(configuration: ClientConfiguration = defaultClientConfiguration): AccountsApiV1AccountsIdGetClient = DefaultAccountsApiV1AccountsIdGetClient(configuration)

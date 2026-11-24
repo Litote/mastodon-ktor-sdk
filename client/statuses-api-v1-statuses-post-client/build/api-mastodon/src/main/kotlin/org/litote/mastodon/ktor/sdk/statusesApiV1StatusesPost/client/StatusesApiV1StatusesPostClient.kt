@@ -8,12 +8,17 @@ import io.ktor.http.Headers
 import io.ktor.http.contentType
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonElement
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.model.CreateStatusRequest
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.CreateStatusResponse
@@ -26,17 +31,18 @@ public interface StatusesApiV1StatusesPostClient {
   public suspend fun createStatus(request: CreateStatusRequest, idempotencyKey: JsonElement? = null): CreateStatusResponse
 
   @Serializable
-  public sealed class CreateStatusResponse {
-    public abstract val headers: Headers
+  public sealed class CreateStatusResponse : OperationResponse<org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.CreateStatusResponse> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class CreateStatusResponseSuccess(
-    public val body:
+    override val body:
         org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.CreateStatusResponse,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateStatusResponse() {
+  ) : CreateStatusResponse(),
+      OperationResponseSuccess<org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget83730355.model.CreateStatusResponse> {
     /**
      * Number of requests permitted per time period
      */
@@ -58,23 +64,29 @@ public interface StatusesApiV1StatusesPostClient {
 
   @Serializable
   public data class CreateStatusResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateStatusResponse()
+  ) : CreateStatusResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class CreateStatusResponseFailure(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateStatusResponse()
+  ) : CreateStatusResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class CreateStatusResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateStatusResponse()
+  ) : CreateStatusResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun StatusesApiV1StatusesPostClient(configuration: ClientConfiguration = defaultClientConfiguration): StatusesApiV1StatusesPostClient = DefaultStatusesApiV1StatusesPostClient(configuration)

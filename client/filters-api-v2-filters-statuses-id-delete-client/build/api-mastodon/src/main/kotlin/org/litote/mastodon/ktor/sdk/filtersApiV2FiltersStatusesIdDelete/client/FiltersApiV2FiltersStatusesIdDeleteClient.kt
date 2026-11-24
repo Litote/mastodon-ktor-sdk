@@ -6,11 +6,16 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget32903fc7.model.FilterStatus
@@ -22,16 +27,17 @@ public interface FiltersApiV2FiltersStatusesIdDeleteClient {
   public suspend fun deleteFiltersStatusesByIdV2(id: String): DeleteFiltersStatusesByIdV2Response
 
   @Serializable
-  public sealed class DeleteFiltersStatusesByIdV2Response {
-    public abstract val headers: Headers
+  public sealed class DeleteFiltersStatusesByIdV2Response : OperationResponse<FilterStatus> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class DeleteFiltersStatusesByIdV2ResponseSuccess(
-    public val body: FilterStatus,
+    override val body: FilterStatus,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteFiltersStatusesByIdV2Response() {
+  ) : DeleteFiltersStatusesByIdV2Response(),
+      OperationResponseSuccess<FilterStatus> {
     /**
      * Number of requests permitted per time period
      */
@@ -53,30 +59,37 @@ public interface FiltersApiV2FiltersStatusesIdDeleteClient {
 
   @Serializable
   public data class DeleteFiltersStatusesByIdV2ResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteFiltersStatusesByIdV2Response()
+  ) : DeleteFiltersStatusesByIdV2Response(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class DeleteFiltersStatusesByIdV2ResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteFiltersStatusesByIdV2Response()
+  ) : DeleteFiltersStatusesByIdV2Response(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class DeleteFiltersStatusesByIdV2ResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteFiltersStatusesByIdV2Response()
+  ) : DeleteFiltersStatusesByIdV2Response(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class DeleteFiltersStatusesByIdV2ResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : DeleteFiltersStatusesByIdV2Response()
+  ) : DeleteFiltersStatusesByIdV2Response(),
+      OperationResponseUnknownFailure
 }
 
 public fun FiltersApiV2FiltersStatusesIdDeleteClient(configuration: ClientConfiguration = defaultClientConfiguration): FiltersApiV2FiltersStatusesIdDeleteClient = DefaultFiltersApiV2FiltersStatusesIdDeleteClient(configuration)

@@ -4,13 +4,19 @@ import io.ktor.client.call.body
 import io.ktor.client.request.`get`
 import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
+import kotlin.Any
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesgetDdf78166.model.MediaAttachment
 
@@ -21,16 +27,17 @@ public interface MediaApiV1MediaIdGetClient {
   public suspend fun getMedia(id: String): GetMediaResponse
 
   @Serializable
-  public sealed class GetMediaResponse {
-    public abstract val headers: Headers
+  public sealed class GetMediaResponse : OperationResponse<Any?> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetMediaResponseSuccess200(
-    public val body: MediaAttachment,
+    override val body: MediaAttachment,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetMediaResponse() {
+  ) : GetMediaResponse(),
+      OperationResponseSuccess<Any?> {
     /**
      * Number of requests permitted per time period
      */
@@ -54,7 +61,11 @@ public interface MediaApiV1MediaIdGetClient {
   public data class GetMediaResponseSuccess(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetMediaResponse() {
+  ) : GetMediaResponse(),
+      OperationResponseSuccess<Any?> {
+    override val body: Unit
+      get() = Unit
+
     /**
      * Number of requests permitted per time period
      */
@@ -76,23 +87,29 @@ public interface MediaApiV1MediaIdGetClient {
 
   @Serializable
   public data class GetMediaResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetMediaResponse()
+  ) : GetMediaResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetMediaResponseFailure(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetMediaResponse()
+  ) : GetMediaResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetMediaResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetMediaResponse()
+  ) : GetMediaResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun MediaApiV1MediaIdGetClient(configuration: ClientConfiguration = defaultClientConfiguration): MediaApiV1MediaIdGetClient = DefaultMediaApiV1MediaIdGetClient(configuration)

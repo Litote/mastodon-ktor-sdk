@@ -6,12 +6,17 @@ import io.ktor.http.Headers
 import kotlin.Int
 import kotlin.Long
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersgetB7d593a6.model.Account
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
@@ -23,16 +28,17 @@ public interface SuggestionsApiV1SuggestionsGetClient {
   public suspend fun getSuggestions(limit: Long? = 40): GetSuggestionsResponse
 
   @Serializable
-  public sealed class GetSuggestionsResponse {
-    public abstract val headers: Headers
+  public sealed class GetSuggestionsResponse : OperationResponse<List<Account>> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetSuggestionsResponseSuccess(
-    public val body: List<Account>,
+    override val body: List<Account>,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetSuggestionsResponse() {
+  ) : GetSuggestionsResponse(),
+      OperationResponseSuccess<List<Account>> {
     /**
      * Number of requests permitted per time period
      */
@@ -54,30 +60,37 @@ public interface SuggestionsApiV1SuggestionsGetClient {
 
   @Serializable
   public data class GetSuggestionsResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetSuggestionsResponse()
+  ) : GetSuggestionsResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetSuggestionsResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetSuggestionsResponse()
+  ) : GetSuggestionsResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetSuggestionsResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetSuggestionsResponse()
+  ) : GetSuggestionsResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetSuggestionsResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetSuggestionsResponse()
+  ) : GetSuggestionsResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun SuggestionsApiV1SuggestionsGetClient(configuration: ClientConfiguration = defaultClientConfiguration): SuggestionsApiV1SuggestionsGetClient = DefaultSuggestionsApiV1SuggestionsGetClient(configuration)

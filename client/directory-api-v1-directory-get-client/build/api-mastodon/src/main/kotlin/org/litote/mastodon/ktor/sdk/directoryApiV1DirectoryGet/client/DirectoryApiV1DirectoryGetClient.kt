@@ -7,12 +7,17 @@ import kotlin.Boolean
 import kotlin.Int
 import kotlin.Long
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.List
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersgetB7d593a6.model.Account
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
@@ -29,16 +34,17 @@ public interface DirectoryApiV1DirectoryGetClient {
   ): GetDirectoryResponse
 
   @Serializable
-  public sealed class GetDirectoryResponse {
-    public abstract val headers: Headers
+  public sealed class GetDirectoryResponse : OperationResponse<List<Account>> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetDirectoryResponseSuccess(
-    public val body: List<Account>,
+    override val body: List<Account>,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetDirectoryResponse() {
+  ) : GetDirectoryResponse(),
+      OperationResponseSuccess<List<Account>> {
     /**
      * Number of requests permitted per time period
      */
@@ -60,30 +66,37 @@ public interface DirectoryApiV1DirectoryGetClient {
 
   @Serializable
   public data class GetDirectoryResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetDirectoryResponse()
+  ) : GetDirectoryResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetDirectoryResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetDirectoryResponse()
+  ) : GetDirectoryResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetDirectoryResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetDirectoryResponse()
+  ) : GetDirectoryResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetDirectoryResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetDirectoryResponse()
+  ) : GetDirectoryResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun DirectoryApiV1DirectoryGetClient(configuration: ClientConfiguration = defaultClientConfiguration): DirectoryApiV1DirectoryGetClient = DefaultDirectoryApiV1DirectoryGetClient(configuration)

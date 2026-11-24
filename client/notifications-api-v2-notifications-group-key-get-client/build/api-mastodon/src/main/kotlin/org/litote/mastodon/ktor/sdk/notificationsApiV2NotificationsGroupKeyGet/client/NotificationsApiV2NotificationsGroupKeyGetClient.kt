@@ -6,11 +6,16 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedNotificationsapiv2notificationsget01d6a505.model.GroupedNotificationsResults
@@ -22,16 +27,17 @@ public interface NotificationsApiV2NotificationsGroupKeyGetClient {
   public suspend fun getNotificationsByGroupKeyV2(groupKey: String): GetNotificationsByGroupKeyV2Response
 
   @Serializable
-  public sealed class GetNotificationsByGroupKeyV2Response {
-    public abstract val headers: Headers
+  public sealed class GetNotificationsByGroupKeyV2Response : OperationResponse<GroupedNotificationsResults> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetNotificationsByGroupKeyV2ResponseSuccess(
-    public val body: GroupedNotificationsResults,
+    override val body: GroupedNotificationsResults,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsByGroupKeyV2Response() {
+  ) : GetNotificationsByGroupKeyV2Response(),
+      OperationResponseSuccess<GroupedNotificationsResults> {
     /**
      * Number of requests permitted per time period
      */
@@ -53,30 +59,37 @@ public interface NotificationsApiV2NotificationsGroupKeyGetClient {
 
   @Serializable
   public data class GetNotificationsByGroupKeyV2ResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsByGroupKeyV2Response()
+  ) : GetNotificationsByGroupKeyV2Response(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetNotificationsByGroupKeyV2ResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsByGroupKeyV2Response()
+  ) : GetNotificationsByGroupKeyV2Response(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetNotificationsByGroupKeyV2ResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsByGroupKeyV2Response()
+  ) : GetNotificationsByGroupKeyV2Response(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetNotificationsByGroupKeyV2ResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsByGroupKeyV2Response()
+  ) : GetNotificationsByGroupKeyV2Response(),
+      OperationResponseUnknownFailure
 }
 
 public fun NotificationsApiV2NotificationsGroupKeyGetClient(configuration: ClientConfiguration = defaultClientConfiguration): NotificationsApiV2NotificationsGroupKeyGetClient = DefaultNotificationsApiV2NotificationsGroupKeyGetClient(configuration)

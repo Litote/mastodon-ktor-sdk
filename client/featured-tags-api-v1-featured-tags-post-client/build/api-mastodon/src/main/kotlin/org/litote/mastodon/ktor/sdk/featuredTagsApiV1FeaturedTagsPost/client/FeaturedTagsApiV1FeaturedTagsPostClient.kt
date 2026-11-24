@@ -8,11 +8,16 @@ import io.ktor.http.Headers
 import io.ktor.http.contentType
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidfeaturedtagsgetB2ed9160.model.FeaturedTag
 
@@ -28,16 +33,17 @@ public interface FeaturedTagsApiV1FeaturedTagsPostClient {
   )
 
   @Serializable
-  public sealed class CreateFeaturedTagResponse {
-    public abstract val headers: Headers
+  public sealed class CreateFeaturedTagResponse : OperationResponse<FeaturedTag> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class CreateFeaturedTagResponseSuccess(
-    public val body: FeaturedTag,
+    override val body: FeaturedTag,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateFeaturedTagResponse() {
+  ) : CreateFeaturedTagResponse(),
+      OperationResponseSuccess<FeaturedTag> {
     /**
      * Number of requests permitted per time period
      */
@@ -59,23 +65,29 @@ public interface FeaturedTagsApiV1FeaturedTagsPostClient {
 
   @Serializable
   public data class CreateFeaturedTagResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateFeaturedTagResponse()
+  ) : CreateFeaturedTagResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class CreateFeaturedTagResponseFailure(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateFeaturedTagResponse()
+  ) : CreateFeaturedTagResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class CreateFeaturedTagResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateFeaturedTagResponse()
+  ) : CreateFeaturedTagResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun FeaturedTagsApiV1FeaturedTagsPostClient(configuration: ClientConfiguration = defaultClientConfiguration): FeaturedTagsApiV1FeaturedTagsPostClient = DefaultFeaturedTagsApiV1FeaturedTagsPostClient(configuration)

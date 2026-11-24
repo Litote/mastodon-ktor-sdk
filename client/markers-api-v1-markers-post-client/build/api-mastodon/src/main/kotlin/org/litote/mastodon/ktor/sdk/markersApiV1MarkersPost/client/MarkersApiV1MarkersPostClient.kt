@@ -8,6 +8,7 @@ import io.ktor.http.Headers
 import io.ktor.http.contentType
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.collections.Map
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.SerialName
@@ -15,6 +16,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedMarkersapiv1markersgetMarkersapiv1markerspost.model.Marker
@@ -44,16 +49,17 @@ public interface MarkersApiV1MarkersPostClient {
   }
 
   @Serializable
-  public sealed class CreateMarkerResponse {
-    public abstract val headers: Headers
+  public sealed class CreateMarkerResponse : OperationResponse<Map<String, Marker>> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class CreateMarkerResponseSuccess(
-    public val body: Map<String, Marker>,
+    override val body: Map<String, Marker>,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateMarkerResponse() {
+  ) : CreateMarkerResponse(),
+      OperationResponseSuccess<Map<String, Marker>> {
     /**
      * Number of requests permitted per time period
      */
@@ -75,30 +81,37 @@ public interface MarkersApiV1MarkersPostClient {
 
   @Serializable
   public data class CreateMarkerResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateMarkerResponse()
+  ) : CreateMarkerResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class CreateMarkerResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateMarkerResponse()
+  ) : CreateMarkerResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class CreateMarkerResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateMarkerResponse()
+  ) : CreateMarkerResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class CreateMarkerResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : CreateMarkerResponse()
+  ) : CreateMarkerResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun MarkersApiV1MarkersPostClient(configuration: ClientConfiguration = defaultClientConfiguration): MarkersApiV1MarkersPostClient = DefaultMarkersApiV1MarkersPostClient(configuration)

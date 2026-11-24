@@ -6,11 +6,16 @@ import io.ktor.http.Headers
 import io.ktor.http.encodeURLPathPart
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsidstatusesget32903fc7.model.FilterStatus
@@ -22,16 +27,17 @@ public interface FiltersApiV2FiltersStatusesIdGetClient {
   public suspend fun getFiltersStatusesByIdV2(id: String): GetFiltersStatusesByIdV2Response
 
   @Serializable
-  public sealed class GetFiltersStatusesByIdV2Response {
-    public abstract val headers: Headers
+  public sealed class GetFiltersStatusesByIdV2Response : OperationResponse<FilterStatus> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetFiltersStatusesByIdV2ResponseSuccess(
-    public val body: FilterStatus,
+    override val body: FilterStatus,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetFiltersStatusesByIdV2Response() {
+  ) : GetFiltersStatusesByIdV2Response(),
+      OperationResponseSuccess<FilterStatus> {
     /**
      * Number of requests permitted per time period
      */
@@ -53,30 +59,37 @@ public interface FiltersApiV2FiltersStatusesIdGetClient {
 
   @Serializable
   public data class GetFiltersStatusesByIdV2ResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetFiltersStatusesByIdV2Response()
+  ) : GetFiltersStatusesByIdV2Response(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetFiltersStatusesByIdV2ResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetFiltersStatusesByIdV2Response()
+  ) : GetFiltersStatusesByIdV2Response(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetFiltersStatusesByIdV2ResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetFiltersStatusesByIdV2Response()
+  ) : GetFiltersStatusesByIdV2Response(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetFiltersStatusesByIdV2ResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetFiltersStatusesByIdV2Response()
+  ) : GetFiltersStatusesByIdV2Response(),
+      OperationResponseUnknownFailure
 }
 
 public fun FiltersApiV2FiltersStatusesIdGetClient(configuration: ClientConfiguration = defaultClientConfiguration): FiltersApiV2FiltersStatusesIdGetClient = DefaultFiltersApiV2FiltersStatusesIdGetClient(configuration)

@@ -5,11 +5,16 @@ import io.ktor.client.request.`get`
 import io.ktor.http.Headers
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.model.MergedResponse
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
@@ -21,16 +26,17 @@ public interface NotificationsApiV1NotificationsRequestsMergedGetClient {
   public suspend fun getNotificationsRequestsMerged(): GetNotificationsRequestsMergedResponse
 
   @Serializable
-  public sealed class GetNotificationsRequestsMergedResponse {
-    public abstract val headers: Headers
+  public sealed class GetNotificationsRequestsMergedResponse : OperationResponse<MergedResponse> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetNotificationsRequestsMergedResponseSuccess(
-    public val body: MergedResponse,
+    override val body: MergedResponse,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsRequestsMergedResponse() {
+  ) : GetNotificationsRequestsMergedResponse(),
+      OperationResponseSuccess<MergedResponse> {
     /**
      * Number of requests permitted per time period
      */
@@ -52,30 +58,37 @@ public interface NotificationsApiV1NotificationsRequestsMergedGetClient {
 
   @Serializable
   public data class GetNotificationsRequestsMergedResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsRequestsMergedResponse()
+  ) : GetNotificationsRequestsMergedResponse(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetNotificationsRequestsMergedResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsRequestsMergedResponse()
+  ) : GetNotificationsRequestsMergedResponse(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetNotificationsRequestsMergedResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsRequestsMergedResponse()
+  ) : GetNotificationsRequestsMergedResponse(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetNotificationsRequestsMergedResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationsRequestsMergedResponse()
+  ) : GetNotificationsRequestsMergedResponse(),
+      OperationResponseUnknownFailure
 }
 
 public fun NotificationsApiV1NotificationsRequestsMergedGetClient(configuration: ClientConfiguration = defaultClientConfiguration): NotificationsApiV1NotificationsRequestsMergedGetClient = DefaultNotificationsApiV1NotificationsRequestsMergedGetClient(configuration)

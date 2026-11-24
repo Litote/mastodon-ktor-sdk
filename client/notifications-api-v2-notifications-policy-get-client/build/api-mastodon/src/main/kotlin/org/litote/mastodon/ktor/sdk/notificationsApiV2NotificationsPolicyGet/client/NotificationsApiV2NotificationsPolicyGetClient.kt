@@ -5,11 +5,16 @@ import io.ktor.client.request.`get`
 import io.ktor.http.Headers
 import kotlin.Int
 import kotlin.String
+import kotlin.Unit
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration
 import org.litote.mastodon.ktor.sdk.client.ClientConfiguration.Companion.defaultClientConfiguration
+import org.litote.mastodon.ktor.sdk.client.OperationResponse
+import org.litote.mastodon.ktor.sdk.client.OperationResponseFailure
+import org.litote.mastodon.ktor.sdk.client.OperationResponseSuccess
+import org.litote.mastodon.ktor.sdk.client.OperationResponseUnknownFailure
 import org.litote.mastodon.ktor.sdk.model.NotificationPolicy
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsfamiliarfollowersget162656ba.model.Error
 import org.litote.mastodon.ktor.sdk.sharedAccountsapiv1accountsgetF0eb0b5e.model.ValidationError
@@ -21,16 +26,17 @@ public interface NotificationsApiV2NotificationsPolicyGetClient {
   public suspend fun getNotificationPolicyV2(): GetNotificationPolicyV2Response
 
   @Serializable
-  public sealed class GetNotificationPolicyV2Response {
-    public abstract val headers: Headers
+  public sealed class GetNotificationPolicyV2Response : OperationResponse<NotificationPolicy> {
+    abstract override val headers: Headers
   }
 
   @Serializable
   public data class GetNotificationPolicyV2ResponseSuccess(
-    public val body: NotificationPolicy,
+    override val body: NotificationPolicy,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationPolicyV2Response() {
+  ) : GetNotificationPolicyV2Response(),
+      OperationResponseSuccess<NotificationPolicy> {
     /**
      * Number of requests permitted per time period
      */
@@ -52,30 +58,37 @@ public interface NotificationsApiV2NotificationsPolicyGetClient {
 
   @Serializable
   public data class GetNotificationPolicyV2ResponseFailure401(
-    public val body: Error,
+    override val body: Error,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationPolicyV2Response()
+  ) : GetNotificationPolicyV2Response(),
+      OperationResponseFailure<Error>
 
   @Serializable
   public data class GetNotificationPolicyV2ResponseFailure410(
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationPolicyV2Response()
+  ) : GetNotificationPolicyV2Response(),
+      OperationResponseFailure<Unit> {
+    override val body: Unit
+      get() = Unit
+  }
 
   @Serializable
   public data class GetNotificationPolicyV2ResponseFailure(
-    public val body: ValidationError,
+    override val body: ValidationError,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationPolicyV2Response()
+  ) : GetNotificationPolicyV2Response(),
+      OperationResponseFailure<ValidationError>
 
   @Serializable
   public data class GetNotificationPolicyV2ResponseUnknownFailure(
-    public val statusCode: Int,
+    override val statusCode: Int,
     @Transient
     override val headers: Headers = Headers.Empty,
-  ) : GetNotificationPolicyV2Response()
+  ) : GetNotificationPolicyV2Response(),
+      OperationResponseUnknownFailure
 }
 
 public fun NotificationsApiV2NotificationsPolicyGetClient(configuration: ClientConfiguration = defaultClientConfiguration): NotificationsApiV2NotificationsPolicyGetClient = DefaultNotificationsApiV2NotificationsPolicyGetClient(configuration)
