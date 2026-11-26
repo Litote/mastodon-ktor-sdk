@@ -64,7 +64,7 @@ fun `GIVEN precondition WHEN action THEN expected result`() {
 A change is complete when:
 
 - [ ] Validation and Quality Gate (see *ALWAYS Do*) pass, with the exceptions stated there — `check` compiles without warnings and all tests pass
-- [ ] No public API is broken
+- [ ] No public API is broken (`checkKotlinAbi`; after an intended change, `updateKotlinAbi` and review the `sdk/*/api/` diff)
 - [ ] Only relevant files are modified
 - [ ] Type safety is preserved
 - [ ] Architecture boundaries are respected

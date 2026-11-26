@@ -1,0 +1,61 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, js, linuxArm64, linuxX64, macosArm64, mingwX64, wasmJs]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <org.litote.mastodon.ktor.sdk:read>
+final enum class org.litote.mastodon.ktor.sdk.read/SearchType : kotlin/Enum<org.litote.mastodon.ktor.sdk.read/SearchType> { // org.litote.mastodon.ktor.sdk.read/SearchType|null[0]
+    enum entry ACCOUNTS // org.litote.mastodon.ktor.sdk.read/SearchType.ACCOUNTS|null[0]
+    enum entry HASHTAGS // org.litote.mastodon.ktor.sdk.read/SearchType.HASHTAGS|null[0]
+    enum entry STATUSES // org.litote.mastodon.ktor.sdk.read/SearchType.STATUSES|null[0]
+
+    final val entries // org.litote.mastodon.ktor.sdk.read/SearchType.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<org.litote.mastodon.ktor.sdk.read/SearchType> // org.litote.mastodon.ktor.sdk.read/SearchType.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): org.litote.mastodon.ktor.sdk.read/SearchType // org.litote.mastodon.ktor.sdk.read/SearchType.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<org.litote.mastodon.ktor.sdk.read/SearchType> // org.litote.mastodon.ktor.sdk.read/SearchType.values|values#static(){}[0]
+}
+
+final class org.litote.mastodon.ktor.sdk.read/ReadSdk { // org.litote.mastodon.ktor.sdk.read/ReadSdk|null[0]
+    constructor <init>(org.litote.mastodon.ktor.sdk.api.client/ClientConfiguration) // org.litote.mastodon.ktor.sdk.read/ReadSdk.<init>|<init>(org.litote.mastodon.ktor.sdk.api.client.ClientConfiguration){}[0]
+    constructor <init>(org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration) // org.litote.mastodon.ktor.sdk.read/ReadSdk.<init>|<init>(org.litote.mastodon.ktor.sdk.configuration.SdkConfiguration){}[0]
+
+    final suspend fun homeTimeline(kotlin/Int = ...): org.litote.mastodon.ktor.sdk.read/ReadResult<kotlin.collections/List<org.litote.mastodon.ktor.sdk.api.model/Status>> // org.litote.mastodon.ktor.sdk.read/ReadSdk.homeTimeline|homeTimeline(kotlin.Int){}[0]
+    final suspend fun notifications(kotlin/Int = ...): org.litote.mastodon.ktor.sdk.read/ReadResult<kotlin.collections/List<org.litote.mastodon.ktor.sdk.api.model/Notification>> // org.litote.mastodon.ktor.sdk.read/ReadSdk.notifications|notifications(kotlin.Int){}[0]
+    final suspend fun search(kotlin/String, org.litote.mastodon.ktor.sdk.read/SearchType? = ..., kotlin/Int = ...): org.litote.mastodon.ktor.sdk.read/ReadResult<org.litote.mastodon.ktor.sdk.api.model/Search> // org.litote.mastodon.ktor.sdk.read/ReadSdk.search|search(kotlin.String;org.litote.mastodon.ktor.sdk.read.SearchType?;kotlin.Int){}[0]
+}
+
+sealed class <#A: out kotlin/Any?> org.litote.mastodon.ktor.sdk.read/ReadResult { // org.litote.mastodon.ktor.sdk.read/ReadResult|null[0]
+    final class <#A1: out kotlin/Any?> Success : org.litote.mastodon.ktor.sdk.read/ReadResult<#A1> { // org.litote.mastodon.ktor.sdk.read/ReadResult.Success|null[0]
+        constructor <init>(#A1) // org.litote.mastodon.ktor.sdk.read/ReadResult.Success.<init>|<init>(1:0){}[0]
+
+        final val value // org.litote.mastodon.ktor.sdk.read/ReadResult.Success.value|{}value[0]
+            final fun <get-value>(): #A1 // org.litote.mastodon.ktor.sdk.read/ReadResult.Success.value.<get-value>|<get-value>(){}[0]
+
+        final fun component1(): #A1 // org.litote.mastodon.ktor.sdk.read/ReadResult.Success.component1|component1(){}[0]
+        final fun copy(#A1 = ...): org.litote.mastodon.ktor.sdk.read/ReadResult.Success<#A1> // org.litote.mastodon.ktor.sdk.read/ReadResult.Success.copy|copy(1:0){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // org.litote.mastodon.ktor.sdk.read/ReadResult.Success.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // org.litote.mastodon.ktor.sdk.read/ReadResult.Success.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // org.litote.mastodon.ktor.sdk.read/ReadResult.Success.toString|toString(){}[0]
+    }
+
+    final class Failure : org.litote.mastodon.ktor.sdk.read/ReadResult<kotlin/Nothing> { // org.litote.mastodon.ktor.sdk.read/ReadResult.Failure|null[0]
+        constructor <init>(kotlin/String) // org.litote.mastodon.ktor.sdk.read/ReadResult.Failure.<init>|<init>(kotlin.String){}[0]
+
+        final val errorMessage // org.litote.mastodon.ktor.sdk.read/ReadResult.Failure.errorMessage|{}errorMessage[0]
+            final fun <get-errorMessage>(): kotlin/String // org.litote.mastodon.ktor.sdk.read/ReadResult.Failure.errorMessage.<get-errorMessage>|<get-errorMessage>(){}[0]
+
+        final fun component1(): kotlin/String // org.litote.mastodon.ktor.sdk.read/ReadResult.Failure.component1|component1(){}[0]
+        final fun copy(kotlin/String = ...): org.litote.mastodon.ktor.sdk.read/ReadResult.Failure // org.litote.mastodon.ktor.sdk.read/ReadResult.Failure.copy|copy(kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // org.litote.mastodon.ktor.sdk.read/ReadResult.Failure.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // org.litote.mastodon.ktor.sdk.read/ReadResult.Failure.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // org.litote.mastodon.ktor.sdk.read/ReadResult.Failure.toString|toString(){}[0]
+    }
+}
+
+final const val org.litote.mastodon.ktor.sdk.read/DEFAULT_READ_LIMIT // org.litote.mastodon.ktor.sdk.read/DEFAULT_READ_LIMIT|{}DEFAULT_READ_LIMIT[0]
+    final fun <get-DEFAULT_READ_LIMIT>(): kotlin/Int // org.litote.mastodon.ktor.sdk.read/DEFAULT_READ_LIMIT.<get-DEFAULT_READ_LIMIT>|<get-DEFAULT_READ_LIMIT>(){}[0]
+final const val org.litote.mastodon.ktor.sdk.read/MAX_READ_LIMIT // org.litote.mastodon.ktor.sdk.read/MAX_READ_LIMIT|{}MAX_READ_LIMIT[0]
+    final fun <get-MAX_READ_LIMIT>(): kotlin/Int // org.litote.mastodon.ktor.sdk.read/MAX_READ_LIMIT.<get-MAX_READ_LIMIT>|<get-MAX_READ_LIMIT>(){}[0]

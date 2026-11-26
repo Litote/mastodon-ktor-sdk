@@ -44,7 +44,7 @@ mastodon-ktor-sdk/
 
 | Plugin | Purpose |
 |---|---|
-| `kotlin-convention` | Kotlin Multiplatform, JVM 17, `explicitApi`, ktlint, Maven publishing |
+| `kotlin-convention` | Kotlin Multiplatform, JVM 17, `explicitApi`, ktlint, Maven publishing, ABI validation of `:sdk:*` (`sdk/<module>/api/`) |
 | `project-convention` | Sets `group` and `version` from `gradle.properties` |
 | `signing-convention` | GPG signing via `gpg` command |
 

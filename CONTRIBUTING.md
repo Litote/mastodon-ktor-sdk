@@ -114,6 +114,19 @@ On a Dependabot bump, the *Update Gradle verification metadata* workflow commits
 Generator bumps are excluded from auto-merge: they change the public API of `:sdk:api`, so review the generated diff
 and choose the release type (`feat:` / `feat!:`) when merging.
 
+The public API of the published SDKs (`:sdk:*`) is recorded in `sdk/<module>/api/` (Kotlin ABI validation):
+`checkKotlinAbi`, run by `check`, fails if it changes. After an intended API change, update the dumps and review
+their diff: a removed or changed declaration is a breaking change (`feat!:`).
+
+```bash
+./gradlew updateKotlinAbi
+```
+
+The klib dumps list the Apple targets: on Linux, their ABI is inferred from the other targets, and `-PappleTargets=false`
+would drop them from the dumps. So the Linux CI job leaves out `checkKotlinAbi`, which runs in the macOS job.
+On a Dependabot bump, the *Update Gradle verification metadata* workflow also commits the dumps whose changes only add
+non abstract members; a removed or changed declaration, or an abstract member, is left to a review.
+
 ## Publishing and Maven Central limits
 
 Maven Central limits the number of files (artifacts, signatures and checksums), the size and the number of releases
@@ -170,7 +183,7 @@ Gradle convention plugins are defined in `convention/`:
 
 | Plugin | Purpose |
 |---|---|
-| `kotlin-convention` | Kotlin Multiplatform, JVM 17, `explicitApi`, ktlint, Maven publishing |
+| `kotlin-convention` | Kotlin Multiplatform, JVM 17, `explicitApi`, ktlint, Maven publishing, ABI validation of `:sdk:*` |
 | `project-convention` | Sets `group` and `version` from `gradle.properties` |
 | `signing-convention` | GPG signing via `gpg` command |
 
