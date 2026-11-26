@@ -1,0 +1,50 @@
+public abstract class org/litote/mastodon/ktor/sdk/read/ReadResult {
+}
+
+public final class org/litote/mastodon/ktor/sdk/read/ReadResult$Failure : org/litote/mastodon/ktor/sdk/read/ReadResult {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lorg/litote/mastodon/ktor/sdk/read/ReadResult$Failure;
+	public static synthetic fun copy$default (Lorg/litote/mastodon/ktor/sdk/read/ReadResult$Failure;Ljava/lang/String;ILjava/lang/Object;)Lorg/litote/mastodon/ktor/sdk/read/ReadResult$Failure;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getErrorMessage ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class org/litote/mastodon/ktor/sdk/read/ReadResult$Success : org/litote/mastodon/ktor/sdk/read/ReadResult {
+	public fun <init> (Ljava/lang/Object;)V
+	public final fun component1 ()Ljava/lang/Object;
+	public final fun copy (Ljava/lang/Object;)Lorg/litote/mastodon/ktor/sdk/read/ReadResult$Success;
+	public static synthetic fun copy$default (Lorg/litote/mastodon/ktor/sdk/read/ReadResult$Success;Ljava/lang/Object;ILjava/lang/Object;)Lorg/litote/mastodon/ktor/sdk/read/ReadResult$Success;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class org/litote/mastodon/ktor/sdk/read/ReadSdk {
+	public fun <init> (Lorg/litote/mastodon/ktor/sdk/api/client/ClientConfiguration;)V
+	public fun <init> (Lorg/litote/mastodon/ktor/sdk/configuration/SdkConfiguration;)V
+	public final fun homeTimeline (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun homeTimeline$default (Lorg/litote/mastodon/ktor/sdk/read/ReadSdk;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun notifications (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun notifications$default (Lorg/litote/mastodon/ktor/sdk/read/ReadSdk;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun search (Ljava/lang/String;Lorg/litote/mastodon/ktor/sdk/read/SearchType;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun search$default (Lorg/litote/mastodon/ktor/sdk/read/ReadSdk;Ljava/lang/String;Lorg/litote/mastodon/ktor/sdk/read/SearchType;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class org/litote/mastodon/ktor/sdk/read/ReadSdkKt {
+	public static final field DEFAULT_READ_LIMIT I
+	public static final field MAX_READ_LIMIT I
+}
+
+public final class org/litote/mastodon/ktor/sdk/read/SearchType : java/lang/Enum {
+	public static final field ACCOUNTS Lorg/litote/mastodon/ktor/sdk/read/SearchType;
+	public static final field HASHTAGS Lorg/litote/mastodon/ktor/sdk/read/SearchType;
+	public static final field STATUSES Lorg/litote/mastodon/ktor/sdk/read/SearchType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lorg/litote/mastodon/ktor/sdk/read/SearchType;
+	public static fun values ()[Lorg/litote/mastodon/ktor/sdk/read/SearchType;
+}
+

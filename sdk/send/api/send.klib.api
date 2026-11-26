@@ -1,0 +1,190 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, js, linuxArm64, linuxX64, macosArm64, mingwX64, wasmJs]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <org.litote.mastodon.ktor.sdk:send>
+final class org.litote.mastodon.ktor.sdk.send/AttachmentInfo { // org.litote.mastodon.ktor.sdk.send/AttachmentInfo|null[0]
+    constructor <init>(kotlin/Int, kotlin/String, kotlin/String?) // org.litote.mastodon.ktor.sdk.send/AttachmentInfo.<init>|<init>(kotlin.Int;kotlin.String;kotlin.String?){}[0]
+
+    final val contentType // org.litote.mastodon.ktor.sdk.send/AttachmentInfo.contentType|{}contentType[0]
+        final fun <get-contentType>(): kotlin/String // org.litote.mastodon.ktor.sdk.send/AttachmentInfo.contentType.<get-contentType>|<get-contentType>(){}[0]
+    final val description // org.litote.mastodon.ktor.sdk.send/AttachmentInfo.description|{}description[0]
+        final fun <get-description>(): kotlin/String? // org.litote.mastodon.ktor.sdk.send/AttachmentInfo.description.<get-description>|<get-description>(){}[0]
+    final val sizeBytes // org.litote.mastodon.ktor.sdk.send/AttachmentInfo.sizeBytes|{}sizeBytes[0]
+        final fun <get-sizeBytes>(): kotlin/Int // org.litote.mastodon.ktor.sdk.send/AttachmentInfo.sizeBytes.<get-sizeBytes>|<get-sizeBytes>(){}[0]
+
+    final fun component1(): kotlin/Int // org.litote.mastodon.ktor.sdk.send/AttachmentInfo.component1|component1(){}[0]
+    final fun component2(): kotlin/String // org.litote.mastodon.ktor.sdk.send/AttachmentInfo.component2|component2(){}[0]
+    final fun component3(): kotlin/String? // org.litote.mastodon.ktor.sdk.send/AttachmentInfo.component3|component3(){}[0]
+    final fun copy(kotlin/Int = ..., kotlin/String = ..., kotlin/String? = ...): org.litote.mastodon.ktor.sdk.send/AttachmentInfo // org.litote.mastodon.ktor.sdk.send/AttachmentInfo.copy|copy(kotlin.Int;kotlin.String;kotlin.String?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // org.litote.mastodon.ktor.sdk.send/AttachmentInfo.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // org.litote.mastodon.ktor.sdk.send/AttachmentInfo.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // org.litote.mastodon.ktor.sdk.send/AttachmentInfo.toString|toString(){}[0]
+}
+
+final class org.litote.mastodon.ktor.sdk.send/SendSdk { // org.litote.mastodon.ktor.sdk.send/SendSdk|null[0]
+    constructor <init>(org.litote.mastodon.ktor.sdk.api.client/ClientConfiguration, kotlin/Boolean = ..., org.litote.mastodon.ktor.sdk.api.model/StatusVisibilityEnum? = ..., kotlin/String? = ..., kotlin.time/Duration = ..., kotlin.time/Duration = ...) // org.litote.mastodon.ktor.sdk.send/SendSdk.<init>|<init>(org.litote.mastodon.ktor.sdk.api.client.ClientConfiguration;kotlin.Boolean;org.litote.mastodon.ktor.sdk.api.model.StatusVisibilityEnum?;kotlin.String?;kotlin.time.Duration;kotlin.time.Duration){}[0]
+    constructor <init>(org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration) // org.litote.mastodon.ktor.sdk.send/SendSdk.<init>|<init>(org.litote.mastodon.ktor.sdk.configuration.SdkConfiguration){}[0]
+
+    final suspend fun deleteStatus(kotlin/String): org.litote.mastodon.ktor.sdk.send/DeleteResult // org.litote.mastodon.ktor.sdk.send/SendSdk.deleteStatus|deleteStatus(kotlin.String){}[0]
+    final suspend fun sendMedia(org.litote.mastodon.ktor.sdk.api.model/MediaStatus, kotlin.collections/List<org.litote.mastodon.ktor.sdk.api.client/MediaClient.CreateMediaV2Form>): org.litote.mastodon.ktor.sdk.send/SendResult // org.litote.mastodon.ktor.sdk.send/SendSdk.sendMedia|sendMedia(org.litote.mastodon.ktor.sdk.api.model.MediaStatus;kotlin.collections.List<org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2Form>){}[0]
+    final suspend fun sendText(org.litote.mastodon.ktor.sdk.api.model/TextStatus): org.litote.mastodon.ktor.sdk.send/SendResult // org.litote.mastodon.ktor.sdk.send/SendSdk.sendText|sendText(org.litote.mastodon.ktor.sdk.api.model.TextStatus){}[0]
+}
+
+final class org.litote.mastodon.ktor.sdk.send/SimulateInfo { // org.litote.mastodon.ktor.sdk.send/SimulateInfo|null[0]
+    constructor <init>(kotlin/String, kotlin/String?, kotlin/String?, kotlin/String?, kotlin/String?, kotlin.collections/List<org.litote.mastodon.ktor.sdk.send/AttachmentInfo> = ...) // org.litote.mastodon.ktor.sdk.send/SimulateInfo.<init>|<init>(kotlin.String;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.collections.List<org.litote.mastodon.ktor.sdk.send.AttachmentInfo>){}[0]
+
+    final val attachments // org.litote.mastodon.ktor.sdk.send/SimulateInfo.attachments|{}attachments[0]
+        final fun <get-attachments>(): kotlin.collections/List<org.litote.mastodon.ktor.sdk.send/AttachmentInfo> // org.litote.mastodon.ktor.sdk.send/SimulateInfo.attachments.<get-attachments>|<get-attachments>(){}[0]
+    final val inReplyToId // org.litote.mastodon.ktor.sdk.send/SimulateInfo.inReplyToId|{}inReplyToId[0]
+        final fun <get-inReplyToId>(): kotlin/String? // org.litote.mastodon.ktor.sdk.send/SimulateInfo.inReplyToId.<get-inReplyToId>|<get-inReplyToId>(){}[0]
+    final val language // org.litote.mastodon.ktor.sdk.send/SimulateInfo.language|{}language[0]
+        final fun <get-language>(): kotlin/String? // org.litote.mastodon.ktor.sdk.send/SimulateInfo.language.<get-language>|<get-language>(){}[0]
+    final val spoilerText // org.litote.mastodon.ktor.sdk.send/SimulateInfo.spoilerText|{}spoilerText[0]
+        final fun <get-spoilerText>(): kotlin/String? // org.litote.mastodon.ktor.sdk.send/SimulateInfo.spoilerText.<get-spoilerText>|<get-spoilerText>(){}[0]
+    final val text // org.litote.mastodon.ktor.sdk.send/SimulateInfo.text|{}text[0]
+        final fun <get-text>(): kotlin/String // org.litote.mastodon.ktor.sdk.send/SimulateInfo.text.<get-text>|<get-text>(){}[0]
+    final val visibility // org.litote.mastodon.ktor.sdk.send/SimulateInfo.visibility|{}visibility[0]
+        final fun <get-visibility>(): kotlin/String? // org.litote.mastodon.ktor.sdk.send/SimulateInfo.visibility.<get-visibility>|<get-visibility>(){}[0]
+
+    final fun component1(): kotlin/String // org.litote.mastodon.ktor.sdk.send/SimulateInfo.component1|component1(){}[0]
+    final fun component2(): kotlin/String? // org.litote.mastodon.ktor.sdk.send/SimulateInfo.component2|component2(){}[0]
+    final fun component3(): kotlin/String? // org.litote.mastodon.ktor.sdk.send/SimulateInfo.component3|component3(){}[0]
+    final fun component4(): kotlin/String? // org.litote.mastodon.ktor.sdk.send/SimulateInfo.component4|component4(){}[0]
+    final fun component5(): kotlin/String? // org.litote.mastodon.ktor.sdk.send/SimulateInfo.component5|component5(){}[0]
+    final fun component6(): kotlin.collections/List<org.litote.mastodon.ktor.sdk.send/AttachmentInfo> // org.litote.mastodon.ktor.sdk.send/SimulateInfo.component6|component6(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin.collections/List<org.litote.mastodon.ktor.sdk.send/AttachmentInfo> = ...): org.litote.mastodon.ktor.sdk.send/SimulateInfo // org.litote.mastodon.ktor.sdk.send/SimulateInfo.copy|copy(kotlin.String;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.collections.List<org.litote.mastodon.ktor.sdk.send.AttachmentInfo>){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // org.litote.mastodon.ktor.sdk.send/SimulateInfo.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // org.litote.mastodon.ktor.sdk.send/SimulateInfo.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // org.litote.mastodon.ktor.sdk.send/SimulateInfo.toString|toString(){}[0]
+}
+
+sealed class org.litote.mastodon.ktor.sdk.send/DeleteResult { // org.litote.mastodon.ktor.sdk.send/DeleteResult|null[0]
+    final class Failure : org.litote.mastodon.ktor.sdk.send/DeleteResult { // org.litote.mastodon.ktor.sdk.send/DeleteResult.Failure|null[0]
+        constructor <init>(kotlin/String, org.litote.mastodon.ktor.sdk.api.client/StatusesClient.DeleteStatusResponse) // org.litote.mastodon.ktor.sdk.send/DeleteResult.Failure.<init>|<init>(kotlin.String;org.litote.mastodon.ktor.sdk.api.client.StatusesClient.DeleteStatusResponse){}[0]
+
+        final val errorMessage // org.litote.mastodon.ktor.sdk.send/DeleteResult.Failure.errorMessage|{}errorMessage[0]
+            final fun <get-errorMessage>(): kotlin/String // org.litote.mastodon.ktor.sdk.send/DeleteResult.Failure.errorMessage.<get-errorMessage>|<get-errorMessage>(){}[0]
+        final val id // org.litote.mastodon.ktor.sdk.send/DeleteResult.Failure.id|{}id[0]
+            final fun <get-id>(): kotlin/String // org.litote.mastodon.ktor.sdk.send/DeleteResult.Failure.id.<get-id>|<get-id>(){}[0]
+        final val response // org.litote.mastodon.ktor.sdk.send/DeleteResult.Failure.response|{}response[0]
+            final fun <get-response>(): org.litote.mastodon.ktor.sdk.api.client/StatusesClient.DeleteStatusResponse // org.litote.mastodon.ktor.sdk.send/DeleteResult.Failure.response.<get-response>|<get-response>(){}[0]
+
+        final fun component1(): kotlin/String // org.litote.mastodon.ktor.sdk.send/DeleteResult.Failure.component1|component1(){}[0]
+        final fun component2(): org.litote.mastodon.ktor.sdk.api.client/StatusesClient.DeleteStatusResponse // org.litote.mastodon.ktor.sdk.send/DeleteResult.Failure.component2|component2(){}[0]
+        final fun copy(kotlin/String = ..., org.litote.mastodon.ktor.sdk.api.client/StatusesClient.DeleteStatusResponse = ...): org.litote.mastodon.ktor.sdk.send/DeleteResult.Failure // org.litote.mastodon.ktor.sdk.send/DeleteResult.Failure.copy|copy(kotlin.String;org.litote.mastodon.ktor.sdk.api.client.StatusesClient.DeleteStatusResponse){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // org.litote.mastodon.ktor.sdk.send/DeleteResult.Failure.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // org.litote.mastodon.ktor.sdk.send/DeleteResult.Failure.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // org.litote.mastodon.ktor.sdk.send/DeleteResult.Failure.toString|toString(){}[0]
+    }
+
+    final class Simulated : org.litote.mastodon.ktor.sdk.send/DeleteResult { // org.litote.mastodon.ktor.sdk.send/DeleteResult.Simulated|null[0]
+        constructor <init>(kotlin/String) // org.litote.mastodon.ktor.sdk.send/DeleteResult.Simulated.<init>|<init>(kotlin.String){}[0]
+
+        final val id // org.litote.mastodon.ktor.sdk.send/DeleteResult.Simulated.id|{}id[0]
+            final fun <get-id>(): kotlin/String // org.litote.mastodon.ktor.sdk.send/DeleteResult.Simulated.id.<get-id>|<get-id>(){}[0]
+
+        final fun component1(): kotlin/String // org.litote.mastodon.ktor.sdk.send/DeleteResult.Simulated.component1|component1(){}[0]
+        final fun copy(kotlin/String = ...): org.litote.mastodon.ktor.sdk.send/DeleteResult.Simulated // org.litote.mastodon.ktor.sdk.send/DeleteResult.Simulated.copy|copy(kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // org.litote.mastodon.ktor.sdk.send/DeleteResult.Simulated.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // org.litote.mastodon.ktor.sdk.send/DeleteResult.Simulated.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // org.litote.mastodon.ktor.sdk.send/DeleteResult.Simulated.toString|toString(){}[0]
+    }
+
+    final class Success : org.litote.mastodon.ktor.sdk.send/DeleteResult { // org.litote.mastodon.ktor.sdk.send/DeleteResult.Success|null[0]
+        constructor <init>(org.litote.mastodon.ktor.sdk.api.model/Status) // org.litote.mastodon.ktor.sdk.send/DeleteResult.Success.<init>|<init>(org.litote.mastodon.ktor.sdk.api.model.Status){}[0]
+
+        final val status // org.litote.mastodon.ktor.sdk.send/DeleteResult.Success.status|{}status[0]
+            final fun <get-status>(): org.litote.mastodon.ktor.sdk.api.model/Status // org.litote.mastodon.ktor.sdk.send/DeleteResult.Success.status.<get-status>|<get-status>(){}[0]
+
+        final fun component1(): org.litote.mastodon.ktor.sdk.api.model/Status // org.litote.mastodon.ktor.sdk.send/DeleteResult.Success.component1|component1(){}[0]
+        final fun copy(org.litote.mastodon.ktor.sdk.api.model/Status = ...): org.litote.mastodon.ktor.sdk.send/DeleteResult.Success // org.litote.mastodon.ktor.sdk.send/DeleteResult.Success.copy|copy(org.litote.mastodon.ktor.sdk.api.model.Status){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // org.litote.mastodon.ktor.sdk.send/DeleteResult.Success.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // org.litote.mastodon.ktor.sdk.send/DeleteResult.Success.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // org.litote.mastodon.ktor.sdk.send/DeleteResult.Success.toString|toString(){}[0]
+    }
+}
+
+sealed class org.litote.mastodon.ktor.sdk.send/SendResult { // org.litote.mastodon.ktor.sdk.send/SendResult|null[0]
+    final class MediaProcessingFailure : org.litote.mastodon.ktor.sdk.send/SendResult { // org.litote.mastodon.ktor.sdk.send/SendResult.MediaProcessingFailure|null[0]
+        constructor <init>(kotlin/String, org.litote.mastodon.ktor.sdk.api.client/MediaClient.GetMediaResponse?) // org.litote.mastodon.ktor.sdk.send/SendResult.MediaProcessingFailure.<init>|<init>(kotlin.String;org.litote.mastodon.ktor.sdk.api.client.MediaClient.GetMediaResponse?){}[0]
+
+        final val errorMessage // org.litote.mastodon.ktor.sdk.send/SendResult.MediaProcessingFailure.errorMessage|{}errorMessage[0]
+            final fun <get-errorMessage>(): kotlin/String // org.litote.mastodon.ktor.sdk.send/SendResult.MediaProcessingFailure.errorMessage.<get-errorMessage>|<get-errorMessage>(){}[0]
+        final val mediaId // org.litote.mastodon.ktor.sdk.send/SendResult.MediaProcessingFailure.mediaId|{}mediaId[0]
+            final fun <get-mediaId>(): kotlin/String // org.litote.mastodon.ktor.sdk.send/SendResult.MediaProcessingFailure.mediaId.<get-mediaId>|<get-mediaId>(){}[0]
+        final val response // org.litote.mastodon.ktor.sdk.send/SendResult.MediaProcessingFailure.response|{}response[0]
+            final fun <get-response>(): org.litote.mastodon.ktor.sdk.api.client/MediaClient.GetMediaResponse? // org.litote.mastodon.ktor.sdk.send/SendResult.MediaProcessingFailure.response.<get-response>|<get-response>(){}[0]
+
+        final fun component1(): kotlin/String // org.litote.mastodon.ktor.sdk.send/SendResult.MediaProcessingFailure.component1|component1(){}[0]
+        final fun component2(): org.litote.mastodon.ktor.sdk.api.client/MediaClient.GetMediaResponse? // org.litote.mastodon.ktor.sdk.send/SendResult.MediaProcessingFailure.component2|component2(){}[0]
+        final fun copy(kotlin/String = ..., org.litote.mastodon.ktor.sdk.api.client/MediaClient.GetMediaResponse? = ...): org.litote.mastodon.ktor.sdk.send/SendResult.MediaProcessingFailure // org.litote.mastodon.ktor.sdk.send/SendResult.MediaProcessingFailure.copy|copy(kotlin.String;org.litote.mastodon.ktor.sdk.api.client.MediaClient.GetMediaResponse?){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // org.litote.mastodon.ktor.sdk.send/SendResult.MediaProcessingFailure.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // org.litote.mastodon.ktor.sdk.send/SendResult.MediaProcessingFailure.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // org.litote.mastodon.ktor.sdk.send/SendResult.MediaProcessingFailure.toString|toString(){}[0]
+    }
+
+    final class PostFailure : org.litote.mastodon.ktor.sdk.send/SendResult { // org.litote.mastodon.ktor.sdk.send/SendResult.PostFailure|null[0]
+        constructor <init>(org.litote.mastodon.ktor.sdk.api.client/StatusesClient.CreateStatusResponse) // org.litote.mastodon.ktor.sdk.send/SendResult.PostFailure.<init>|<init>(org.litote.mastodon.ktor.sdk.api.client.StatusesClient.CreateStatusResponse){}[0]
+
+        final val errorMessage // org.litote.mastodon.ktor.sdk.send/SendResult.PostFailure.errorMessage|{}errorMessage[0]
+            final fun <get-errorMessage>(): kotlin/String // org.litote.mastodon.ktor.sdk.send/SendResult.PostFailure.errorMessage.<get-errorMessage>|<get-errorMessage>(){}[0]
+        final val response // org.litote.mastodon.ktor.sdk.send/SendResult.PostFailure.response|{}response[0]
+            final fun <get-response>(): org.litote.mastodon.ktor.sdk.api.client/StatusesClient.CreateStatusResponse // org.litote.mastodon.ktor.sdk.send/SendResult.PostFailure.response.<get-response>|<get-response>(){}[0]
+
+        final fun component1(): org.litote.mastodon.ktor.sdk.api.client/StatusesClient.CreateStatusResponse // org.litote.mastodon.ktor.sdk.send/SendResult.PostFailure.component1|component1(){}[0]
+        final fun copy(org.litote.mastodon.ktor.sdk.api.client/StatusesClient.CreateStatusResponse = ...): org.litote.mastodon.ktor.sdk.send/SendResult.PostFailure // org.litote.mastodon.ktor.sdk.send/SendResult.PostFailure.copy|copy(org.litote.mastodon.ktor.sdk.api.client.StatusesClient.CreateStatusResponse){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // org.litote.mastodon.ktor.sdk.send/SendResult.PostFailure.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // org.litote.mastodon.ktor.sdk.send/SendResult.PostFailure.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // org.litote.mastodon.ktor.sdk.send/SendResult.PostFailure.toString|toString(){}[0]
+    }
+
+    final class Simulated : org.litote.mastodon.ktor.sdk.send/SendResult { // org.litote.mastodon.ktor.sdk.send/SendResult.Simulated|null[0]
+        constructor <init>(org.litote.mastodon.ktor.sdk.send/SimulateInfo) // org.litote.mastodon.ktor.sdk.send/SendResult.Simulated.<init>|<init>(org.litote.mastodon.ktor.sdk.send.SimulateInfo){}[0]
+
+        final val info // org.litote.mastodon.ktor.sdk.send/SendResult.Simulated.info|{}info[0]
+            final fun <get-info>(): org.litote.mastodon.ktor.sdk.send/SimulateInfo // org.litote.mastodon.ktor.sdk.send/SendResult.Simulated.info.<get-info>|<get-info>(){}[0]
+
+        final fun component1(): org.litote.mastodon.ktor.sdk.send/SimulateInfo // org.litote.mastodon.ktor.sdk.send/SendResult.Simulated.component1|component1(){}[0]
+        final fun copy(org.litote.mastodon.ktor.sdk.send/SimulateInfo = ...): org.litote.mastodon.ktor.sdk.send/SendResult.Simulated // org.litote.mastodon.ktor.sdk.send/SendResult.Simulated.copy|copy(org.litote.mastodon.ktor.sdk.send.SimulateInfo){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // org.litote.mastodon.ktor.sdk.send/SendResult.Simulated.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // org.litote.mastodon.ktor.sdk.send/SendResult.Simulated.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // org.litote.mastodon.ktor.sdk.send/SendResult.Simulated.toString|toString(){}[0]
+    }
+
+    final class Success : org.litote.mastodon.ktor.sdk.send/SendResult { // org.litote.mastodon.ktor.sdk.send/SendResult.Success|null[0]
+        constructor <init>(org.litote.mastodon.ktor.sdk.api.model/CreateStatusResponse) // org.litote.mastodon.ktor.sdk.send/SendResult.Success.<init>|<init>(org.litote.mastodon.ktor.sdk.api.model.CreateStatusResponse){}[0]
+
+        final val status // org.litote.mastodon.ktor.sdk.send/SendResult.Success.status|{}status[0]
+            final fun <get-status>(): org.litote.mastodon.ktor.sdk.api.model/CreateStatusResponse // org.litote.mastodon.ktor.sdk.send/SendResult.Success.status.<get-status>|<get-status>(){}[0]
+
+        final fun component1(): org.litote.mastodon.ktor.sdk.api.model/CreateStatusResponse // org.litote.mastodon.ktor.sdk.send/SendResult.Success.component1|component1(){}[0]
+        final fun copy(org.litote.mastodon.ktor.sdk.api.model/CreateStatusResponse = ...): org.litote.mastodon.ktor.sdk.send/SendResult.Success // org.litote.mastodon.ktor.sdk.send/SendResult.Success.copy|copy(org.litote.mastodon.ktor.sdk.api.model.CreateStatusResponse){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // org.litote.mastodon.ktor.sdk.send/SendResult.Success.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // org.litote.mastodon.ktor.sdk.send/SendResult.Success.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // org.litote.mastodon.ktor.sdk.send/SendResult.Success.toString|toString(){}[0]
+    }
+
+    final class UploadFailure : org.litote.mastodon.ktor.sdk.send/SendResult { // org.litote.mastodon.ktor.sdk.send/SendResult.UploadFailure|null[0]
+        constructor <init>(org.litote.mastodon.ktor.sdk.api.client/MediaClient.CreateMediaV2Form, org.litote.mastodon.ktor.sdk.api.client/MediaClient.CreateMediaV2Response) // org.litote.mastodon.ktor.sdk.send/SendResult.UploadFailure.<init>|<init>(org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2Form;org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2Response){}[0]
+
+        final val errorMessage // org.litote.mastodon.ktor.sdk.send/SendResult.UploadFailure.errorMessage|{}errorMessage[0]
+            final fun <get-errorMessage>(): kotlin/String // org.litote.mastodon.ktor.sdk.send/SendResult.UploadFailure.errorMessage.<get-errorMessage>|<get-errorMessage>(){}[0]
+        final val form // org.litote.mastodon.ktor.sdk.send/SendResult.UploadFailure.form|{}form[0]
+            final fun <get-form>(): org.litote.mastodon.ktor.sdk.api.client/MediaClient.CreateMediaV2Form // org.litote.mastodon.ktor.sdk.send/SendResult.UploadFailure.form.<get-form>|<get-form>(){}[0]
+        final val response // org.litote.mastodon.ktor.sdk.send/SendResult.UploadFailure.response|{}response[0]
+            final fun <get-response>(): org.litote.mastodon.ktor.sdk.api.client/MediaClient.CreateMediaV2Response // org.litote.mastodon.ktor.sdk.send/SendResult.UploadFailure.response.<get-response>|<get-response>(){}[0]
+
+        final fun component1(): org.litote.mastodon.ktor.sdk.api.client/MediaClient.CreateMediaV2Form // org.litote.mastodon.ktor.sdk.send/SendResult.UploadFailure.component1|component1(){}[0]
+        final fun component2(): org.litote.mastodon.ktor.sdk.api.client/MediaClient.CreateMediaV2Response // org.litote.mastodon.ktor.sdk.send/SendResult.UploadFailure.component2|component2(){}[0]
+        final fun copy(org.litote.mastodon.ktor.sdk.api.client/MediaClient.CreateMediaV2Form = ..., org.litote.mastodon.ktor.sdk.api.client/MediaClient.CreateMediaV2Response = ...): org.litote.mastodon.ktor.sdk.send/SendResult.UploadFailure // org.litote.mastodon.ktor.sdk.send/SendResult.UploadFailure.copy|copy(org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2Form;org.litote.mastodon.ktor.sdk.api.client.MediaClient.CreateMediaV2Response){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // org.litote.mastodon.ktor.sdk.send/SendResult.UploadFailure.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // org.litote.mastodon.ktor.sdk.send/SendResult.UploadFailure.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // org.litote.mastodon.ktor.sdk.send/SendResult.UploadFailure.toString|toString(){}[0]
+    }
+}
+
+final fun org.litote.mastodon.ktor.sdk.send/mediaContentType(kotlin/String): io.ktor.http/ContentType // org.litote.mastodon.ktor.sdk.send/mediaContentType|mediaContentType(kotlin.String){}[0]

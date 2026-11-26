@@ -1,5 +1,6 @@
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 
 plugins {
     id("project-convention")
@@ -55,4 +56,11 @@ kotlin {
     }
 
     explicitApi()
+
+    // Binary compatibility of the published SDKs: checkKotlinAbi (run by `check`) compares their API with the
+    // reference dumps (sdk/<module>/api/). After an intended API change: ./gradlew updateKotlinAbi
+    if (path.startsWith(":sdk:")) {
+        @OptIn(ExperimentalAbiValidation::class)
+        abiValidation()
+    }
 }

@@ -1,0 +1,34 @@
+// Klib ABI Dump
+// Targets: [iosArm64, iosSimulatorArm64, js, linuxArm64, linuxX64, macosArm64, mingwX64, wasmJs]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <org.litote.mastodon.ktor.sdk:configuration>
+final class org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration { // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration|null[0]
+    constructor <init>(kotlin/String, kotlin/String, kotlin/String = ..., kotlin/String = ..., kotlin/Boolean = ...) // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.<init>|<init>(kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.Boolean){}[0]
+
+    final val language // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.language|{}language[0]
+        final fun <get-language>(): kotlin/String // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.language.<get-language>|<get-language>(){}[0]
+    final val server // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.server|{}server[0]
+        final fun <get-server>(): kotlin/String // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.server.<get-server>|<get-server>(){}[0]
+    final val simulate // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.simulate|{}simulate[0]
+        final fun <get-simulate>(): kotlin/Boolean // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.simulate.<get-simulate>|<get-simulate>(){}[0]
+    final val token // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.token|{}token[0]
+        final fun <get-token>(): kotlin/String // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.token.<get-token>|<get-token>(){}[0]
+    final val visibility // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.visibility|{}visibility[0]
+        final fun <get-visibility>(): kotlin/String // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.visibility.<get-visibility>|<get-visibility>(){}[0]
+
+    final fun component1(): kotlin/String // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.component1|component1(){}[0]
+    final fun component2(): kotlin/String // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.component2|component2(){}[0]
+    final fun component3(): kotlin/String // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.component3|component3(){}[0]
+    final fun component4(): kotlin/String // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.component4|component4(){}[0]
+    final fun component5(): kotlin/Boolean // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.component5|component5(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String = ..., kotlin/Boolean = ...): org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.copy|copy(kotlin.String;kotlin.String;kotlin.String;kotlin.String;kotlin.Boolean){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration.toString|toString(){}[0]
+}
+
+final fun (org.litote.mastodon.ktor.sdk.configuration/SdkConfiguration).org.litote.mastodon.ktor.sdk.configuration/toClientConfiguration(): org.litote.mastodon.ktor.sdk.api.client/ClientConfiguration // org.litote.mastodon.ktor.sdk.configuration/toClientConfiguration|toClientConfiguration@org.litote.mastodon.ktor.sdk.configuration.SdkConfiguration(){}[0]

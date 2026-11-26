@@ -1,0 +1,154 @@
+public final class org/litote/mastodon/ktor/sdk/send/AttachmentInfo {
+	public fun <init> (ILjava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()I
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (ILjava/lang/String;Ljava/lang/String;)Lorg/litote/mastodon/ktor/sdk/send/AttachmentInfo;
+	public static synthetic fun copy$default (Lorg/litote/mastodon/ktor/sdk/send/AttachmentInfo;ILjava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lorg/litote/mastodon/ktor/sdk/send/AttachmentInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getContentType ()Ljava/lang/String;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getSizeBytes ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract class org/litote/mastodon/ktor/sdk/send/DeleteResult {
+}
+
+public final class org/litote/mastodon/ktor/sdk/send/DeleteResult$Failure : org/litote/mastodon/ktor/sdk/send/DeleteResult {
+	public fun <init> (Ljava/lang/String;Lorg/litote/mastodon/ktor/sdk/api/client/StatusesClient$DeleteStatusResponse;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lorg/litote/mastodon/ktor/sdk/api/client/StatusesClient$DeleteStatusResponse;
+	public final fun copy (Ljava/lang/String;Lorg/litote/mastodon/ktor/sdk/api/client/StatusesClient$DeleteStatusResponse;)Lorg/litote/mastodon/ktor/sdk/send/DeleteResult$Failure;
+	public static synthetic fun copy$default (Lorg/litote/mastodon/ktor/sdk/send/DeleteResult$Failure;Ljava/lang/String;Lorg/litote/mastodon/ktor/sdk/api/client/StatusesClient$DeleteStatusResponse;ILjava/lang/Object;)Lorg/litote/mastodon/ktor/sdk/send/DeleteResult$Failure;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getErrorMessage ()Ljava/lang/String;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getResponse ()Lorg/litote/mastodon/ktor/sdk/api/client/StatusesClient$DeleteStatusResponse;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class org/litote/mastodon/ktor/sdk/send/DeleteResult$Simulated : org/litote/mastodon/ktor/sdk/send/DeleteResult {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lorg/litote/mastodon/ktor/sdk/send/DeleteResult$Simulated;
+	public static synthetic fun copy$default (Lorg/litote/mastodon/ktor/sdk/send/DeleteResult$Simulated;Ljava/lang/String;ILjava/lang/Object;)Lorg/litote/mastodon/ktor/sdk/send/DeleteResult$Simulated;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class org/litote/mastodon/ktor/sdk/send/DeleteResult$Success : org/litote/mastodon/ktor/sdk/send/DeleteResult {
+	public fun <init> (Lorg/litote/mastodon/ktor/sdk/api/model/Status;)V
+	public final fun component1 ()Lorg/litote/mastodon/ktor/sdk/api/model/Status;
+	public final fun copy (Lorg/litote/mastodon/ktor/sdk/api/model/Status;)Lorg/litote/mastodon/ktor/sdk/send/DeleteResult$Success;
+	public static synthetic fun copy$default (Lorg/litote/mastodon/ktor/sdk/send/DeleteResult$Success;Lorg/litote/mastodon/ktor/sdk/api/model/Status;ILjava/lang/Object;)Lorg/litote/mastodon/ktor/sdk/send/DeleteResult$Success;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getStatus ()Lorg/litote/mastodon/ktor/sdk/api/model/Status;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class org/litote/mastodon/ktor/sdk/send/MediaContentTypeKt {
+	public static final fun mediaContentType (Ljava/lang/String;)Lio/ktor/http/ContentType;
+}
+
+public abstract class org/litote/mastodon/ktor/sdk/send/SendResult {
+}
+
+public final class org/litote/mastodon/ktor/sdk/send/SendResult$MediaProcessingFailure : org/litote/mastodon/ktor/sdk/send/SendResult {
+	public fun <init> (Ljava/lang/String;Lorg/litote/mastodon/ktor/sdk/api/client/MediaClient$GetMediaResponse;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Lorg/litote/mastodon/ktor/sdk/api/client/MediaClient$GetMediaResponse;
+	public final fun copy (Ljava/lang/String;Lorg/litote/mastodon/ktor/sdk/api/client/MediaClient$GetMediaResponse;)Lorg/litote/mastodon/ktor/sdk/send/SendResult$MediaProcessingFailure;
+	public static synthetic fun copy$default (Lorg/litote/mastodon/ktor/sdk/send/SendResult$MediaProcessingFailure;Ljava/lang/String;Lorg/litote/mastodon/ktor/sdk/api/client/MediaClient$GetMediaResponse;ILjava/lang/Object;)Lorg/litote/mastodon/ktor/sdk/send/SendResult$MediaProcessingFailure;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getErrorMessage ()Ljava/lang/String;
+	public final fun getMediaId ()Ljava/lang/String;
+	public final fun getResponse ()Lorg/litote/mastodon/ktor/sdk/api/client/MediaClient$GetMediaResponse;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class org/litote/mastodon/ktor/sdk/send/SendResult$PostFailure : org/litote/mastodon/ktor/sdk/send/SendResult {
+	public fun <init> (Lorg/litote/mastodon/ktor/sdk/api/client/StatusesClient$CreateStatusResponse;)V
+	public final fun component1 ()Lorg/litote/mastodon/ktor/sdk/api/client/StatusesClient$CreateStatusResponse;
+	public final fun copy (Lorg/litote/mastodon/ktor/sdk/api/client/StatusesClient$CreateStatusResponse;)Lorg/litote/mastodon/ktor/sdk/send/SendResult$PostFailure;
+	public static synthetic fun copy$default (Lorg/litote/mastodon/ktor/sdk/send/SendResult$PostFailure;Lorg/litote/mastodon/ktor/sdk/api/client/StatusesClient$CreateStatusResponse;ILjava/lang/Object;)Lorg/litote/mastodon/ktor/sdk/send/SendResult$PostFailure;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getErrorMessage ()Ljava/lang/String;
+	public final fun getResponse ()Lorg/litote/mastodon/ktor/sdk/api/client/StatusesClient$CreateStatusResponse;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class org/litote/mastodon/ktor/sdk/send/SendResult$Simulated : org/litote/mastodon/ktor/sdk/send/SendResult {
+	public fun <init> (Lorg/litote/mastodon/ktor/sdk/send/SimulateInfo;)V
+	public final fun component1 ()Lorg/litote/mastodon/ktor/sdk/send/SimulateInfo;
+	public final fun copy (Lorg/litote/mastodon/ktor/sdk/send/SimulateInfo;)Lorg/litote/mastodon/ktor/sdk/send/SendResult$Simulated;
+	public static synthetic fun copy$default (Lorg/litote/mastodon/ktor/sdk/send/SendResult$Simulated;Lorg/litote/mastodon/ktor/sdk/send/SimulateInfo;ILjava/lang/Object;)Lorg/litote/mastodon/ktor/sdk/send/SendResult$Simulated;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getInfo ()Lorg/litote/mastodon/ktor/sdk/send/SimulateInfo;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class org/litote/mastodon/ktor/sdk/send/SendResult$Success : org/litote/mastodon/ktor/sdk/send/SendResult {
+	public fun <init> (Lorg/litote/mastodon/ktor/sdk/api/model/CreateStatusResponse;)V
+	public final fun component1 ()Lorg/litote/mastodon/ktor/sdk/api/model/CreateStatusResponse;
+	public final fun copy (Lorg/litote/mastodon/ktor/sdk/api/model/CreateStatusResponse;)Lorg/litote/mastodon/ktor/sdk/send/SendResult$Success;
+	public static synthetic fun copy$default (Lorg/litote/mastodon/ktor/sdk/send/SendResult$Success;Lorg/litote/mastodon/ktor/sdk/api/model/CreateStatusResponse;ILjava/lang/Object;)Lorg/litote/mastodon/ktor/sdk/send/SendResult$Success;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getStatus ()Lorg/litote/mastodon/ktor/sdk/api/model/CreateStatusResponse;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class org/litote/mastodon/ktor/sdk/send/SendResult$UploadFailure : org/litote/mastodon/ktor/sdk/send/SendResult {
+	public fun <init> (Lorg/litote/mastodon/ktor/sdk/api/client/MediaClient$CreateMediaV2Form;Lorg/litote/mastodon/ktor/sdk/api/client/MediaClient$CreateMediaV2Response;)V
+	public final fun component1 ()Lorg/litote/mastodon/ktor/sdk/api/client/MediaClient$CreateMediaV2Form;
+	public final fun component2 ()Lorg/litote/mastodon/ktor/sdk/api/client/MediaClient$CreateMediaV2Response;
+	public final fun copy (Lorg/litote/mastodon/ktor/sdk/api/client/MediaClient$CreateMediaV2Form;Lorg/litote/mastodon/ktor/sdk/api/client/MediaClient$CreateMediaV2Response;)Lorg/litote/mastodon/ktor/sdk/send/SendResult$UploadFailure;
+	public static synthetic fun copy$default (Lorg/litote/mastodon/ktor/sdk/send/SendResult$UploadFailure;Lorg/litote/mastodon/ktor/sdk/api/client/MediaClient$CreateMediaV2Form;Lorg/litote/mastodon/ktor/sdk/api/client/MediaClient$CreateMediaV2Response;ILjava/lang/Object;)Lorg/litote/mastodon/ktor/sdk/send/SendResult$UploadFailure;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getErrorMessage ()Ljava/lang/String;
+	public final fun getForm ()Lorg/litote/mastodon/ktor/sdk/api/client/MediaClient$CreateMediaV2Form;
+	public final fun getResponse ()Lorg/litote/mastodon/ktor/sdk/api/client/MediaClient$CreateMediaV2Response;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class org/litote/mastodon/ktor/sdk/send/SendSdk {
+	public synthetic fun <init> (Lorg/litote/mastodon/ktor/sdk/api/client/ClientConfiguration;ZLorg/litote/mastodon/ktor/sdk/api/model/StatusVisibilityEnum;Ljava/lang/String;JJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lorg/litote/mastodon/ktor/sdk/api/client/ClientConfiguration;ZLorg/litote/mastodon/ktor/sdk/api/model/StatusVisibilityEnum;Ljava/lang/String;JJLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lorg/litote/mastodon/ktor/sdk/configuration/SdkConfiguration;)V
+	public final fun deleteStatus (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun sendMedia (Lorg/litote/mastodon/ktor/sdk/api/model/MediaStatus;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun sendText (Lorg/litote/mastodon/ktor/sdk/api/model/TextStatus;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class org/litote/mastodon/ktor/sdk/send/SimulateInfo {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Lorg/litote/mastodon/ktor/sdk/send/SimulateInfo;
+	public static synthetic fun copy$default (Lorg/litote/mastodon/ktor/sdk/send/SimulateInfo;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Lorg/litote/mastodon/ktor/sdk/send/SimulateInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAttachments ()Ljava/util/List;
+	public final fun getInReplyToId ()Ljava/lang/String;
+	public final fun getLanguage ()Ljava/lang/String;
+	public final fun getSpoilerText ()Ljava/lang/String;
+	public final fun getText ()Ljava/lang/String;
+	public final fun getVisibility ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+

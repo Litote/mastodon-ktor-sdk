@@ -12,11 +12,13 @@ jobs:
     if: github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: read
-    uses: Litote/ci/.github/workflows/gradle-verification.yml@63a67e7add1b9fde6396c84399f90c9252f7b8e6 # v0.15.0
+    uses: Litote/ci/.github/workflows/gradle-verification.yml@de40fbf39509c6fa5816a9f2a5991af658aacc66 # v0.16.0
     with:
       # check regenerates the clients: a generator bump commits them with the verification metadata
       commit-paths: client sdk/api/build
-      message: 'chore: update gradle verification metadata and generated clients'
+      # commits the ABI dumps whose changes are backward compatible additions (checkKotlinAbi is left out of the build)
+      abi-tasks: updateKotlinAbi
+      message: 'chore: update gradle verification metadata, generated clients and ABI dumps'
     secrets:
       RELEASE_PLEASE_APP_ID: ${{ secrets.RELEASE_PLEASE_APP_ID }}
       RELEASE_PLEASE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_PLEASE_APP_PRIVATE_KEY }}
